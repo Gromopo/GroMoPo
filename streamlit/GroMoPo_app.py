@@ -7,7 +7,7 @@ from folium import plugins
 from folium.plugins import Fullscreen
 from streamlit_folium import folium_static
 from pathlib import Path
-import os
+import platform
 
 # Configure for wide layout
 st.set_page_config(layout="wide")
@@ -25,7 +25,11 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-image_path = os.getcwd() + '/streamlit/GroMoPo_logo_V1.png'
+if platform.system() == 'Darwin':
+    image_path = 'GroMoPo_logo_V1.png'
+else:
+    image_path = os.getcwd() + '/streamlit/GroMoPo_logo_V1.png'
+
 st.sidebar.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
 # Configure multipage selector — reads .md files
@@ -33,25 +37,49 @@ def read_markdown_file(markdown_file):
     return Path(markdown_file).read_text()
 
 if selection == 'Home':
-    image_path = os.getcwd() + '/streamlit/GroMoPo home banner.png'
+    if platform.system() == 'Darwin':
+        image_path = 'GroMoPo home banner.png'
+    else:
+        image_path = os.getcwd() + '/streamlit/GroMoPo home banner.png'
+    
     st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
     markdown = read_markdown_file("home_page.md")
     st.markdown(markdown, unsafe_allow_html=True)
     
 if selection == 'Vision':
-    markdown = read_markdown_file("vision_page.md")
+    
+    if platform.system() == 'Darwin':
+        markdown = read_markdown_file('vision_page.md')
+    else:
+        markdown = read_markdown_file(os.getcwd() + 'vision_page.md')    
+    
     st.markdown(markdown, unsafe_allow_html=True)
 
 if selection == 'Search database':
-    markdown = read_markdown_file("searchdb_page.md")
+
+    if platform.system() == 'Darwin':
+        markdown = read_markdown_file('searchdb_page.md')
+    else:
+        markdown = read_markdown_file(os.getcwd() + 'searchdb_page.md')    
+
     st.markdown(markdown, unsafe_allow_html=True)
     
 if selection == 'Submit your model':
-    markdown = read_markdown_file("submit_page.md")
+    
+    if platform.system() == 'Darwin':
+        markdown = read_markdown_file('submit_page.md')
+    else:
+        markdown = read_markdown_file(os.getcwd() + 'submit_page.md')  
+    
     st.markdown(markdown, unsafe_allow_html=True)
     
 if selection == 'About':
-    markdown = read_markdown_file("about_page.md")
+
+    if platform.system() == 'Darwin':
+        markdown = read_markdown_file('about_page.md')
+    else:
+        markdown = read_markdown_file(os.getcwd() + 'about_page.md')  
+
     st.markdown(markdown, unsafe_allow_html=True)
     
 # Main app page — groundwater model display and search map
@@ -62,7 +90,11 @@ if selection == 'GROMOPO Portal':
 
     st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
 
-    AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
+    if platform.system() == 'Darwin':
+        AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
+    else:
+        AUS_gdf_polygs = gpd.read_file(os.getcwd() + 'QGIS/shapes/Australia.shp') 
+    
     AUS_gdf_polygs = AUS_gdf_polygs.to_crs(epsg='3857')
     AUS_gdf_points = AUS_gdf_polygs.copy()
     AUS_gdf_points["geometry"] = AUS_gdf_points["geometry"].centroid
