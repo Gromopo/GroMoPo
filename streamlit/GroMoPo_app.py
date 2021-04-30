@@ -52,7 +52,7 @@ if selection == 'Vision':
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('vision_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + 'vision_page.md')    
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/vision_page.md')    
     
     st.markdown(markdown, unsafe_allow_html=True)
 
@@ -61,7 +61,7 @@ if selection == 'Search database':
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('searchdb_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + 'searchdb_page.md')    
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/searchdb_page.md')    
 
     st.markdown(markdown, unsafe_allow_html=True)
     
@@ -70,7 +70,7 @@ if selection == 'Submit your model':
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('submit_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + 'submit_page.md')  
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')  
     
     st.markdown(markdown, unsafe_allow_html=True)
     
@@ -79,7 +79,7 @@ if selection == 'About':
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('about_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + 'about_page.md')  
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/about_page.md')  
 
     st.markdown(markdown, unsafe_allow_html=True)
     
@@ -94,7 +94,7 @@ if selection == 'GROMOPO Portal':
     if platform.system() == 'Darwin':
         AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
     else:
-        AUS_gdf_polygs = gpd.read_file(os.getcwd() + 'QGIS/shapes/Australia.shp') 
+        AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp') 
     
     AUS_gdf_polygs = AUS_gdf_polygs.to_crs(epsg='3857')
     AUS_gdf_points = AUS_gdf_polygs.copy()
