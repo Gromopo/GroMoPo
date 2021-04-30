@@ -7,6 +7,7 @@ from folium import plugins
 from folium.plugins import Fullscreen
 from streamlit_folium import folium_static
 from pathlib import Path
+import os
 
 # Configure for wide layout
 st.set_page_config(layout="wide")
@@ -24,14 +25,16 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-st.sidebar.image('GroMoPo_logo_V1.png', caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+image_path = os.getcwd() + '/GroMoPo_logo_V1.png'
+st.sidebar.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
 # Configure multipage selector — reads .md files
 def read_markdown_file(markdown_file):
     return Path(markdown_file).read_text()
 
 if selection == 'Home':
-    st.image('GroMoPo home banner.png', caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+    image_path = os.getcwd() + '/GroMoPo home banner.png'
+    st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
     markdown = read_markdown_file("home_page.md")
     st.markdown(markdown, unsafe_allow_html=True)
     
