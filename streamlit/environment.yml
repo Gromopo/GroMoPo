@@ -2,5 +2,5 @@ name: gromopo
 dependencies:
   - geopandas
   - folium
-  pip:
+  - pip:
       - streamlit-folium
