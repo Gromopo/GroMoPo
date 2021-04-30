@@ -3,4 +3,5 @@ dependencies:
   - geopandas
   - folium
   - pip:
+      - streamlit
       - streamlit-folium
