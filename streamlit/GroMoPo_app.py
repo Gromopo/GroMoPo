@@ -40,11 +40,12 @@ def read_markdown_file(markdown_file):
 if selection == 'Home':
     if platform.system() == 'Darwin':
         image_path = 'GroMoPo home banner.png'
+        markdown = read_markdown_file('home_page.md')
     else:
         image_path = os.getcwd() + '/streamlit/GroMoPo home banner.png'
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/home_page.md')
     
     st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
-    markdown = read_markdown_file("home_page.md")
     st.markdown(markdown, unsafe_allow_html=True)
     
 if selection == 'Vision':
