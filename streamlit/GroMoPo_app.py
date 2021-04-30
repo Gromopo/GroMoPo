@@ -24,14 +24,14 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-st.sidebar.image('/images/GroMoPo_logo_V1.png', caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+st.sidebar.image('images/GroMoPo_logo_V1.png', caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
 # Configure multipage selector — reads .md files
 def read_markdown_file(markdown_file):
     return Path(markdown_file).read_text()
 
 if selection == 'Home':
-    st.image('/images/GroMoPo home banner.png', caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+    st.image('images/GroMoPo home banner.png', caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
     markdown = read_markdown_file("home_page.md")
     st.markdown(markdown, unsafe_allow_html=True)
     
