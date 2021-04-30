@@ -8,6 +8,7 @@ from folium.plugins import Fullscreen
 from streamlit_folium import folium_static
 from pathlib import Path
 import platform
+import os
 
 # Configure for wide layout
 st.set_page_config(layout="wide")
