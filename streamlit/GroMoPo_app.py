@@ -6,6 +6,7 @@ from folium.features import GeoJsonPopup, GeoJsonTooltip
 from folium import plugins
 from folium.plugins import Fullscreen
 from streamlit_folium import folium_static
+import streamlit.components.v1 as components
 from pathlib import Path
 import platform
 import os
@@ -50,12 +51,12 @@ if selection == 'Home':
 
 if selection == 'Submit Model':
 
-    if platform.system() == 'Darwin':
-        markdown = read_markdown_file('submit_page.md')
-    else:
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')
+    # if platform.system() == 'Darwin':
+    #     markdown = read_markdown_file('submit_page.md')
+    # else:
+    #     markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')
 
-    st.markdown(markdown, unsafe_allow_html=True)
+    components.iframe("https://docs.google.com/forms/d/e/1FAIpQLSeOgQtYLJALacZQfwF2Nb5RMWOqg_ODVyyEXoStBKHekfg66w/viewform?usp=sf_link", height=1500, scrolling=True)
 
 if selection == 'About':
 
