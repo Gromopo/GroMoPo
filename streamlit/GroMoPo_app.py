@@ -79,8 +79,10 @@ if selection == 'Find Models':
 
     if platform.system() == 'Darwin':
         AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
+        NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
     else:
         AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
+        NA_gdf_polygs = gpd.read_file('/QGIS/shapes/north_america.shp')
 
     AUS_gdf_polygs = AUS_gdf_polygs.to_crs(epsg='3857')
     AUS_gdf_points = AUS_gdf_polygs.copy()
@@ -89,6 +91,12 @@ if selection == 'Find Models':
     AUS_gdf_points['lon'] = AUS_gdf_points.geometry.x
     AUS_gdf_points['lat'] = AUS_gdf_points.geometry.y
 
+    NA_gdf_polygs = NA_gdf_polygs.to_crs(epsg='3857')
+    NA_gdf_points = NA_gdf_polygs.copy()
+    NA_gdf_points["geometry"] = NA_gdf_points["geometry"].centroid
+    NA_gdf_points = NA_gdf_points.to_crs(epsg='4326')
+    NA_gdf_points['lon'] = NA_gdf_points.geometry.x
+    NA_gdf_points['lat'] = NA_gdf_points.geometry.y
 
     map = folium.Map(location=[-26, 135], zoom_start=3, crs='EPSG3857')
 
@@ -97,7 +105,7 @@ if selection == 'Find Models':
 
     marker_cluster = plugins.MarkerCluster().add_to(map)
 
-    popup = GeoJsonPopup(
+    popup_AU = GeoJsonPopup(
         fields=["Custodian", "Dev date", "Code"],
         aliases=["Custodian", "Dev date", "Code"],
         localize=True,
@@ -105,7 +113,7 @@ if selection == 'Find Models':
         style="background-color: yellow;",
     )
 
-    tooltip = GeoJsonTooltip(
+    tooltip_AU = GeoJsonTooltip(
         fields=["Custodian", "Dev date", "Code"],
         aliases=["Custodian", "Dev date", "Code"],
         localize=True,
@@ -124,7 +132,7 @@ if selection == 'Find Models':
     for _, r in AUS_gdf_points.iterrows():
         folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
 
-    g = folium.GeoJson(AUS_gdf_polygs, popup=popup, tooltip=tooltip, style_function = lambda feature: {
+    g = folium.GeoJson(AUS_gdf_polygs, popup=popup_AU, tooltip=tooltip_AU, style_function = lambda feature: {
             'fillColor': 'grey',
             'weight': 1,
             'fillOpacity': 0.7,
