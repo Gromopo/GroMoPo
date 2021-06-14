@@ -9,7 +9,7 @@
 - Kevin Befus
 - Marc Bierkens
 
-## Collaborating organisations
+## Collaborating organisations (we hope)
 
 - USGS
 - CSIRO
