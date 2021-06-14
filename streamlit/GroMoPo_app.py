@@ -16,7 +16,7 @@ st.set_page_config(layout="wide")
 # Configure app layout and sidebar menu
 st.sidebar.title('Navigation')
 
-selection = st.sidebar.radio("Go to",['Home','Vision','GROMOPO Portal','Search database', 'Submit your model', 'About'])
+selection = st.sidebar.radio("Go to",['Home','Find Models','Submit Model','About'])
 
 st.sidebar.title('Contribute')
 
@@ -44,50 +44,32 @@ if selection == 'Home':
     else:
         image_path = os.getcwd() + '/streamlit/GroMoPo home banner.png'
         markdown = read_markdown_file(os.getcwd() + '/streamlit/home_page.md')
-    
+
     st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
     st.markdown(markdown, unsafe_allow_html=True)
-    
-if selection == 'Vision':
-    
-    if platform.system() == 'Darwin':
-        markdown = read_markdown_file('vision_page.md')
-    else:
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/vision_page.md')    
-    
-    st.markdown(markdown, unsafe_allow_html=True)
 
-if selection == 'Search database':
+if selection == 'Submit Model':
 
-    if platform.system() == 'Darwin':
-        markdown = read_markdown_file('searchdb_page.md')
-    else:
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/searchdb_page.md')    
-
-    st.markdown(markdown, unsafe_allow_html=True)
-    
-if selection == 'Submit your model':
-    
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('submit_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')  
-    
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')
+
     st.markdown(markdown, unsafe_allow_html=True)
-    
+
 if selection == 'About':
 
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('about_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/about_page.md')  
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/about_page.md')
 
     st.markdown(markdown, unsafe_allow_html=True)
-    
+
 # Main app page — groundwater model display and search map
 # NOTE: this could be refactored into a separate .py script and import on app start
 
-if selection == 'GROMOPO Portal':
+if selection == 'Find Models':
     st.title('GroMoPo — Groundwater Model Portal')
 
     st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
@@ -95,8 +77,8 @@ if selection == 'GROMOPO Portal':
     if platform.system() == 'Darwin':
         AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
     else:
-        AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp') 
-    
+        AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
+
     AUS_gdf_polygs = AUS_gdf_polygs.to_crs(epsg='3857')
     AUS_gdf_points = AUS_gdf_polygs.copy()
     AUS_gdf_points["geometry"] = AUS_gdf_points["geometry"].centroid
@@ -104,12 +86,12 @@ if selection == 'GROMOPO Portal':
     AUS_gdf_points['lon'] = AUS_gdf_points.geometry.x
     AUS_gdf_points['lat'] = AUS_gdf_points.geometry.y
 
-    
+
     map = folium.Map(location=[-26, 135], zoom_start=3, crs='EPSG3857')
-    
+
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='x').add_to(map)
-   
+
     marker_cluster = plugins.MarkerCluster().add_to(map)
 
     popup = GeoJsonPopup(
@@ -146,8 +128,7 @@ if selection == 'GROMOPO Portal':
     }).add_to(map)
 
     map.add_child(folium.LayerControl())
-    
-    
+
     Fullscreen().add_to(map)
 
     folium_static(map, height=700, width=1400)
