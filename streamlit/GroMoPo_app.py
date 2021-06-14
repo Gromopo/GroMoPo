@@ -128,6 +128,14 @@ if selection == 'Find Models':
         max_width=800,
     )
 
+    popup_NA = GeoJsonPopup(
+            fields=["id", "devdate", "name", "url", "contributo", "custodian", "spscale", "purpose", "archive", "coupling", "contribu_1"],
+            aliases=["id", "devdate", "name", "url", "contributo", "custodian", "spscale", "purpose", "archive", "coupling", "contribu_1"],
+            localize=True,
+            labels=True,
+            style="background-color: yellow;",
+        )
+
 
     for _, r in AUS_gdf_points.iterrows():
         folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
@@ -141,7 +149,7 @@ if selection == 'Find Models':
             'fillOpacity': 0.7,
     }).add_to(map)
 
-    h = folium.GeoJson(NA_gdf_polygs, style_function = lambda feature: {
+    h = folium.GeoJson(NA_gdf_polygs, popup=popup_NA, style_function = lambda feature: {
                 'fillColor': 'grey',
                 'weight': 1,
                 'fillOpacity': 0.7,
