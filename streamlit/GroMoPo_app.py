@@ -51,12 +51,14 @@ if selection == 'Home':
 
 if selection == 'Submit Model':
 
-    # if platform.system() == 'Darwin':
-    #     markdown = read_markdown_file('submit_page.md')
-    # else:
-    #     markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')
+    if platform.system() == 'Darwin':
+        markdown = read_markdown_file('submit_page.md')
+    else:
+        markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')
 
-    components.iframe("https://docs.google.com/forms/d/e/1FAIpQLSeOgQtYLJALacZQfwF2Nb5RMWOqg_ODVyyEXoStBKHekfg66w/viewform?usp=sf_link", height=1500, scrolling=True)
+    st.markdown(markdown, unsafe_allow_html=True)
+
+    #components.iframe("https://docs.google.com/forms/d/e/1FAIpQLSeOgQtYLJALacZQfwF2Nb5RMWOqg_ODVyyEXoStBKHekfg66w/viewform?usp=sf_link", height=1500, scrolling=True)
 
 if selection == 'About':
 
