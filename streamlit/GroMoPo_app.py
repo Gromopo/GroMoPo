@@ -82,7 +82,7 @@ if selection == 'Find Models':
         NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
     else:
         AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
-        # NA_gdf_polygs = gpd.read_file('/QGIS/shapes/north_america.shp')
+        NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
 
     AUS_gdf_polygs = AUS_gdf_polygs.to_crs(epsg='3857')
     AUS_gdf_points = AUS_gdf_polygs.copy()
