@@ -91,12 +91,12 @@ if selection == 'Find Models':
     AUS_gdf_points['lon'] = AUS_gdf_points.geometry.x
     AUS_gdf_points['lat'] = AUS_gdf_points.geometry.y
 
-    # NA_gdf_polygs = NA_gdf_polygs.to_crs(epsg='3857')
-    # NA_gdf_points = NA_gdf_polygs.copy()
-    # NA_gdf_points["geometry"] = NA_gdf_points["geometry"].centroid
-    # NA_gdf_points = NA_gdf_points.to_crs(epsg='4326')
-    # NA_gdf_points['lon'] = NA_gdf_points.geometry.x
-    # NA_gdf_points['lat'] = NA_gdf_points.geometry.y
+    NA_gdf_polygs = NA_gdf_polygs.to_crs(epsg='3857')
+    NA_gdf_points = NA_gdf_polygs.copy()
+    NA_gdf_points["geometry"] = NA_gdf_points["geometry"].centroid
+    NA_gdf_points = NA_gdf_points.to_crs(epsg='4326')
+    NA_gdf_points['lon'] = NA_gdf_points.geometry.x
+    NA_gdf_points['lat'] = NA_gdf_points.geometry.y
 
     map = folium.Map(zoom_start=3, crs='EPSG3857')
 
