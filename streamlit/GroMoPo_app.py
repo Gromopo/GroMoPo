@@ -132,10 +132,19 @@ if selection == 'Find Models':
     for _, r in AUS_gdf_points.iterrows():
         folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
 
+    for _, r in NA_gdf_points.iterrows():
+        folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
+
     g = folium.GeoJson(AUS_gdf_polygs, popup=popup_AU, tooltip=tooltip_AU, style_function = lambda feature: {
             'fillColor': 'grey',
             'weight': 1,
             'fillOpacity': 0.7,
+    }).add_to(map)
+
+    h = folium.GeoJson(NA_gdf_polygs, style_function = lambda feature: {
+                'fillColor': 'grey',
+                'weight': 1,
+                'fillOpacity': 0.7,
     }).add_to(map)
 
     map.add_child(folium.LayerControl())
