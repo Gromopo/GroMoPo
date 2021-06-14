@@ -1,3 +1,5 @@
 folium
 geopandas
+rasterio
+numpy
 streamlit-folium
