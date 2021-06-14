@@ -102,12 +102,12 @@ if selection == 'About':
 
 # Main app page — groundwater model display and search map
 # NOTE: this could be refactored into a separate .py script and import on app start
-epsg = 3857# mercator default 
+
 if selection == 'Find Models':
     st.title('GroMoPo — Groundwater Model Portal')
 
     st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
-    
+    epsg = 3857# mercator default 
     # Load each continent and concatenate - might make more sense to load only one global shp in
     continents = ['africa','oceania','asia','europe','north_america','south_america']
     shp_dir = os.path.join('data','shapes')
