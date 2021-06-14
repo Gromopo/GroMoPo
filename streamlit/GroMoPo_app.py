@@ -98,7 +98,7 @@ if selection == 'Find Models':
     NA_gdf_points['lon'] = NA_gdf_points.geometry.x
     NA_gdf_points['lat'] = NA_gdf_points.geometry.y
 
-    map = folium.Map(location=[-26, 135], zoom_start=3, crs='EPSG3857')
+    map = folium.Map(zoom_start=3, crs='EPSG3857')
 
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='x').add_to(map)
