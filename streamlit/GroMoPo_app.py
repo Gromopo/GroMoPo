@@ -68,7 +68,7 @@ else:
     stdir = os.path.join(os.getcwd()) # or provide path to \GroMoPo\streamlit\ folder
     image_path = os.path.join(os.getcwd(),'GroMoPo_logo_V1.png')
 st.sidebar.info("{}".format(image_path))
-st.sidebar.info("{}".format(platform.system()))
+st.sidebar.info("{}".format(os.path.isfile(image_path)))
 # st.sidebar.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
 # if selection == 'Home':
