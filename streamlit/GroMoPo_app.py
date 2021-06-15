@@ -42,9 +42,34 @@ def read_markdown_file(markdown_file):
 #     cm_out = cmap_obj(norm_data)
 #     cm_out[np.isnan(img2),:] = 1
 #     return cm_out
+
+@st.cache    
+def load_shp(dirname,continents = ['africa','oceania','asia','europe','north_america','south_america'],
+             epsg = 3857, shp_dir=os.path.join('data','shapes')):
+    all_gdfs = []
+    for continent in continents:
+        if platform.system() == 'Darwin':
+            shp_dir2 = os.path.join('..',shp_dir)
+            shp_fname = os.path.join('..',shp_dir,'{}.shp'.format(continent))
+            # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
+            # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
+        else:
+            shp_dir2 = os.path.join(os.path.dirname(stdir),shp_dir)
+            shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
+            # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
+            # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
+        if os.path.isfile(shp_fname):
+            temp_df=gpd.read_file(shp_fname)
+            if temp_df.crs.to_epsg() != epsg:
+                temp_df.to_crs(epsg=epsg,inplace=True)
+            all_gdfs.append(temp_df)
     
+    all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
+    if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
+        all_gdf.to_crs(epsg=epsg,inplace=True)
     
-    
+    return all_gdf,shp_dir2
+        
 #%% Load shapefiles in once before page loads
 
 # Configure for wide layout
@@ -60,32 +85,12 @@ else:
         stdir = os.path.join(os.getcwd(),'streamlit')
         logo_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
 
-epsg = 3857# mercator default 
+# mercator default 
 # Load each continent and concatenate - might make more sense to load only one global shp in
-continents = ['africa','oceania','asia','europe','north_america','south_america']
-shp_dir = os.path.join('data','shapes')
 
-# all_gdfs = []
-# for continent in continents:
-#     if platform.system() == 'Darwin':
-#         shp_dir2 = os.path.join('..',shp_dir)
-#         shp_fname = os.path.join('..',shp_dir,'{}.shp'.format(continent))
-#         # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
-#         # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
-#     else:
-#         shp_dir2 = os.path.join(os.path.dirname(stdir),shp_dir)
-#         shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
-#         # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
-#         # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
-#     if os.path.isfile(shp_fname):
-#         temp_df=gpd.read_file(shp_fname)
-#         if temp_df.crs.to_epsg() != epsg:
-#             temp_df.to_crs(epsg=epsg,inplace=True)
-#         all_gdfs.append(temp_df)
 
-# all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
-# if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
-#     all_gdf.to_crs(epsg=epsg,inplace=True)
+
+
 
 #%%
 
@@ -115,140 +120,143 @@ st.sidebar.info("{}".format(logo_path))
         
 st.sidebar.image(logo_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
-# if selection == 'Home':
-#     if platform.system() == 'Darwin':
-#         image_path = 'GroMoPo home banner.png'
-#         markdown = read_markdown_file('home_page.md')
-#     else:
-#         image_path = os.path.join(stdir,'GroMoPo home banner.png')
-#         markdown = read_markdown_file(os.path.join(stdir,'home_page.md'))
+if selection == 'Home':
+    if platform.system() == 'Darwin':
+        image_path = 'GroMoPo home banner.png'
+        markdown = read_markdown_file('home_page.md')
+    else:
+        image_path = os.path.join(stdir,'GroMoPo home banner.png')
+        markdown = read_markdown_file(os.path.join(stdir,'home_page.md'))
 
-#     st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
-#     st.markdown(markdown, unsafe_allow_html=True)
+    st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+    st.markdown(markdown, unsafe_allow_html=True)
 
-# if selection == 'Submit Model':
+if selection == 'Submit Model':
 
-#     if platform.system() == 'Darwin':
-#         markdown = read_markdown_file('submit_page.md')
-#     else:
-#         markdown = read_markdown_file(os.path.join(stdir,'submit_page.md'))
+    if platform.system() == 'Darwin':
+        markdown = read_markdown_file('submit_page.md')
+    else:
+        markdown = read_markdown_file(os.path.join(stdir,'submit_page.md'))
 
-#     st.markdown(markdown, unsafe_allow_html=True)
+    st.markdown(markdown, unsafe_allow_html=True)
 
-#     #components.iframe("https://docs.google.com/forms/d/e/1FAIpQLSeOgQtYLJALacZQfwF2Nb5RMWOqg_ODVyyEXoStBKHekfg66w/viewform?usp=sf_link", height=1500, scrolling=True)
+    #components.iframe("https://docs.google.com/forms/d/e/1FAIpQLSeOgQtYLJALacZQfwF2Nb5RMWOqg_ODVyyEXoStBKHekfg66w/viewform?usp=sf_link", height=1500, scrolling=True)
 
-# if selection == 'About':
+if selection == 'About':
 
-#     if platform.system() == 'Darwin':
-#         markdown = read_markdown_file('about_page.md')
-#     else:
-#         markdown = read_markdown_file(os.path.join(stdir,'about_page.md'))
+    if platform.system() == 'Darwin':
+        markdown = read_markdown_file('about_page.md')
+    else:
+        markdown = read_markdown_file(os.path.join(stdir,'about_page.md'))
 
-#     st.markdown(markdown, unsafe_allow_html=True)
+    st.markdown(markdown, unsafe_allow_html=True)
 
-# # Main app page — groundwater model display and search map
-# # NOTE: this could be refactored into a separate .py script and import on app start
+# Main app page — groundwater model display and search map
+# NOTE: this could be refactored into a separate .py script and import on app start
 
-# if selection == 'Find Models':
-#     st.title('GroMoPo — Groundwater Model Portal')
+if selection == 'Find Models':
+    st.title('GroMoPo — Groundwater Model Portal')
 
-#     st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
+    st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
     
-    
+    epsg = 3857
 
-#     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg),min_zoom=3,max_bounds=True)
-
-#     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
-#     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',name='ArcWorldImagery', attr='x').add_to(map)
+    map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg),min_zoom=3,max_bounds=True)
     
-#     rast_fname = os.path.join(os.path.dirname(os.path.dirname(shp_fname)),'degraaf_gw_dep.png')
-#     st.sidebar.info('{}'.format(os.path.isfile(rast_fname)))
-#     # img = imread(rast_fname)
-#     # I can't find a way to load a tif in...could save as txt or similar but would be a big file. TBD
-#     # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
-#     # img = gdal.Open(rast_fname).ReadAsArray()
+    folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
+    folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',name='ArcWorldImagery', attr='x').add_to(map)
+    
+    all_gdf,shp_dir = load_shp(stdir,epsg=epsg)
+    
+    rast_fname = os.path.join(os.path.dirname(shp_dir),'degraaf_gw_dep.png')
+    st.sidebar.info('{}'.format(os.path.isfile(rast_fname)))
+    # img = imread(rast_fname)
+    # I can't find a way to load a tif in...could save as txt or similar but would be a big file. TBD
+    # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
+    # img = gdal.Open(rast_fname).ReadAsArray()
         
-#     # cm_out = cmap(img)
-#     # skip_rows=60
-#     # cm_out = img[skip_rows:-skip_rows,:,:]
+    # cm_out = cmap(img)
+    # skip_rows=60
+    # cm_out = img[skip_rows:-skip_rows,:,:]
     
-#     # rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
-#     # rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
+    # rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
+    # rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
     
     
     
-#     marker_cluster = plugins.MarkerCluster(control=False).add_to(map)
+    marker_cluster = plugins.MarkerCluster(control=False).add_to(map)
 
-#     # popup_AU = GeoJsonPopup(
-#     #     fields=["Custodian", "Dev date", "Code"],
-#     #     aliases=["Custodian", "Dev date", "Code"],
-#     #     localize=True,
-#     #     labels=True,
-#     #     style="background-color: yellow;",
-#     # )
+    # popup_AU = GeoJsonPopup(
+    #     fields=["Custodian", "Dev date", "Code"],
+    #     aliases=["Custodian", "Dev date", "Code"],
+    #     localize=True,
+    #     labels=True,
+    #     style="background-color: yellow;",
+    # )
 
-#     # tooltip_AU = GeoJsonTooltip(
-#     #     fields=["Custodian", "Dev date", "Code"],
-#     #     aliases=["Custodian", "Dev date", "Code"],
-#     #     localize=True,
-#     #     sticky=False,
-#     #     labels=True,
-#     #     style="""
-#     #         background-color: #F0EFEF;
-#     #         border: 2px solid black;
-#     #         border-radius: 3px;
-#     #         box-shadow: 3px;
-#     #     """,
-#     #     max_width=800,
-#     # )
+    # tooltip_AU = GeoJsonTooltip(
+    #     fields=["Custodian", "Dev date", "Code"],
+    #     aliases=["Custodian", "Dev date", "Code"],
+    #     localize=True,
+    #     sticky=False,
+    #     labels=True,
+    #     style="""
+    #         background-color: #F0EFEF;
+    #         border: 2px solid black;
+    #         border-radius: 3px;
+    #         box-shadow: 3px;
+    #     """,
+    #     max_width=800,
+    # )
 
-#     popup_NA = GeoJsonPopup(
-#             fields=["id", "devdate", "name", "url", "custodian", "spscale", "purpose", "archive", "coupling", "contribu_1"],
-#             aliases=["ID", "Date Developed", "Name", "URL", "Custodian", "Spatial Scale", "Purpose", "Archive", "Coupling", "Contributed by"],
-#             localize=True,
-#             labels=True,
-#             style="background-color: yellow;",
-#         )
+    popup_NA = GeoJsonPopup(
+            fields=["id", "devdate", "name", "url", "custodian", "spscale", "purpose", "archive", "coupling", "contribu_1"],
+            aliases=["ID", "Date Developed", "Name", "URL", "Custodian", "Spatial Scale", "Purpose", "Archive", "Coupling", "Contributed by"],
+            localize=True,
+            labels=True,
+            style="background-color: yellow;",
+        )
+    
+    
+    for _, r in all_gdf.to_crs(epsg='4326').iterrows():
+        folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
 
-#     # for _, r in all_gdf.to_crs(epsg='4326').iterrows():
-#     #     folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
-
-#     # h = folium.GeoJson(all_gdf,name='Groundwater models', popup=popup_NA, style_function = lambda feature: {
-#     #             'fillColor': 'grey',
-#     #             'weight': 1,
-#     #             'fillOpacity': 0.7,
-#     # }).add_to(map)
+    h = folium.GeoJson(all_gdf,name='Groundwater models', popup=popup_NA, style_function = lambda feature: {
+                'fillColor': 'grey',
+                'weight': 1,
+                'fillOpacity': 0.7,
+    }).add_to(map)
 
 
 
 
-#     # for _, r in AUS_gdf_points.iterrows():
-#     #     folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
+    # for _, r in AUS_gdf_points.iterrows():
+    #     folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
 
-#     # for _, r in NA_gdf_points.iterrows():
-#     #     folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
+    # for _, r in NA_gdf_points.iterrows():
+    #     folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
 
-#     # g = folium.GeoJson(AUS_gdf_polygs, popup=popup_AU, tooltip=tooltip_AU, style_function = lambda feature: {
-#     #         'fillColor': 'grey',
-#     #         'weight': 1,
-#     #         'fillOpacity': 0.7,
-#     # }).add_to(map)
+    # g = folium.GeoJson(AUS_gdf_polygs, popup=popup_AU, tooltip=tooltip_AU, style_function = lambda feature: {
+    #         'fillColor': 'grey',
+    #         'weight': 1,
+    #         'fillOpacity': 0.7,
+    # }).add_to(map)
 
-#     # h = folium.GeoJson(NA_gdf_polygs, popup=popup_NA, style_function = lambda feature: {
-#     #             'fillColor': 'grey',
-#     #             'weight': 1,
-#     #             'fillOpacity': 0.7,
-#     # }).add_to(map)
+    # h = folium.GeoJson(NA_gdf_polygs, popup=popup_NA, style_function = lambda feature: {
+    #             'fillColor': 'grey',
+    #             'weight': 1,
+    #             'fillOpacity': 0.7,
+    # }).add_to(map)
 
-#     map.add_child(folium.LayerControl())
-#     # if epsg == 3857:
-#     #     map.setMaxBounds([[-20026376.39, -20048966.10],
-#     #                       [20026376.39, 20048966.10]]) # if EPSG=3857 # Pseudo-Mercator
-#     # elif epsg == 4326:
-#     #     map.setMaxBounds([[-180,-85.06],[180,85.06]]) # if EPSG=4326 # WGS84
+    map.add_child(folium.LayerControl())
+    # if epsg == 3857:
+    #     map.setMaxBounds([[-20026376.39, -20048966.10],
+    #                       [20026376.39, 20048966.10]]) # if EPSG=3857 # Pseudo-Mercator
+    # elif epsg == 4326:
+    #     map.setMaxBounds([[-180,-85.06],[180,85.06]]) # if EPSG=4326 # WGS84
 
-#     Fullscreen().add_to(map)
+    Fullscreen().add_to(map)
 
-#     folium_static(map, height=700, width=1400)
+    folium_static(map, height=700, width=1400)
     
 #     # map.save('test.html')
