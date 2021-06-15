@@ -65,22 +65,24 @@ shp_dir = os.path.join('data','shapes')
 all_gdfs = []
 for continent in continents:
     if platform.system() == 'Darwin':
+        shp_dir2 = os.path.join('..',shp_dir)
         shp_fname = os.path.join('..',shp_dir,'{}.shp'.format(continent))
         # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
         # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
     else:
+        shp_dir2 = os.path.join(os.path.dirname(stdir),shp_dir)
         shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
         # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
         # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
-    if os.path.isfile(shp_fname):
-        temp_df=gpd.read_file(shp_fname)
-        if temp_df.crs.to_epsg() != epsg:
-            temp_df.to_crs(epsg=epsg,inplace=True)
-        all_gdfs.append(temp_df)
+#     if os.path.isfile(shp_fname):
+#         temp_df=gpd.read_file(shp_fname)
+#         if temp_df.crs.to_epsg() != epsg:
+#             temp_df.to_crs(epsg=epsg,inplace=True)
+#         all_gdfs.append(temp_df)
 
-all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
-if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
-    all_gdf.to_crs(epsg=epsg,inplace=True)
+# all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
+# if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
+#     all_gdf.to_crs(epsg=epsg,inplace=True)
 
 #%%
 
@@ -103,7 +105,8 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-
+st.sidebar.info("{}".format(os.path.isdir(shp_dir2)))
+st.sidebar.info("{}".format(shp_dir2))
         
 st.sidebar.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
@@ -202,14 +205,17 @@ if selection == 'Find Models':
             style="background-color: yellow;",
         )
 
-    for _, r in all_gdf.to_crs(epsg='4326').iterrows():
-        folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
+    # for _, r in all_gdf.to_crs(epsg='4326').iterrows():
+    #     folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
 
-    h = folium.GeoJson(all_gdf,name='Groundwater models', popup=popup_NA, style_function = lambda feature: {
-                'fillColor': 'grey',
-                'weight': 1,
-                'fillOpacity': 0.7,
-    }).add_to(map)
+    # h = folium.GeoJson(all_gdf,name='Groundwater models', popup=popup_NA, style_function = lambda feature: {
+    #             'fillColor': 'grey',
+    #             'weight': 1,
+    #             'fillOpacity': 0.7,
+    # }).add_to(map)
+
+
+
 
     # for _, r in AUS_gdf_points.iterrows():
     #     folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
