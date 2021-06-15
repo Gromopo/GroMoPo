@@ -143,7 +143,9 @@ if selection == 'Find Models':
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='x').add_to(map)
     
-    # rast_fname = os.path.join(os.path.dirname(os.path.dirname(shp_fname)),'degraaf_gw_dep.map')
+    rast_fname = os.path.join(os.path.dirname(os.path.dirname(shp_fname)),'degraaf_gw_dep.map')
+    st.sidebar.info("{}".format(rast_fname))
+    st.sidebar.info("{}".format(os.path.isfile(rast_fname)))
     # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
     # cm_out = cmap(img)
     # skip_rows=60
