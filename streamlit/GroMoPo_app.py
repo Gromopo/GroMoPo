@@ -75,8 +75,7 @@ if selection == 'Home':
         image_path = 'GroMoPo home banner.png'
         markdown = read_markdown_file('home_page.md')
     else:
-        stdir = os.path.join(os.getcwd()) # or provide path to \GroMoPo\streamlit\ folder
-        image_path = os.path.join(stdir,'GroMoPo home banner.png')
+        image_path = os.path.join(os.getcwd(),'GroMoPo home banner.png')
         markdown = read_markdown_file(os.path.join(stdir,'home_page.md'))
 
     st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
