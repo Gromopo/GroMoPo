@@ -62,10 +62,12 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
+stdir = os.path.join(os.getcwd()) # or provide path to \GroMoPo\streamlit\ folder
+
 if platform.system() == 'Darwin':
     image_path = 'GroMoPo_logo_V1.png'
 else:
-    image_path = os.getcwd() + '/streamlit/GroMoPo_logo_V1.png'
+    image_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
 
 st.sidebar.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
@@ -74,8 +76,8 @@ if selection == 'Home':
         image_path = 'GroMoPo home banner.png'
         markdown = read_markdown_file('home_page.md')
     else:
-        image_path = os.getcwd() + '/streamlit/GroMoPo home banner.png'
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/home_page.md')
+        image_path = os.path.join(stdir,'GroMoPo home banner.png')
+        markdown = read_markdown_file(os.path.join(stdir,'home_page.md'))
 
     st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
     st.markdown(markdown, unsafe_allow_html=True)
@@ -85,7 +87,7 @@ if selection == 'Submit Model':
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('submit_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/submit_page.md')
+        markdown = read_markdown_file(os.path.join(stdir,'submit_page.md'))
 
     st.markdown(markdown, unsafe_allow_html=True)
 
@@ -96,7 +98,7 @@ if selection == 'About':
     if platform.system() == 'Darwin':
         markdown = read_markdown_file('about_page.md')
     else:
-        markdown = read_markdown_file(os.getcwd() + '/streamlit/about_page.md')
+        markdown = read_markdown_file(os.path.join(stdir,'about_page.md'))
 
     st.markdown(markdown, unsafe_allow_html=True)
 
@@ -119,7 +121,7 @@ if selection == 'Find Models':
             # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
             # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
         else:
-            shp_fname = os.path.join(os.getcwd(),shp_dir,'{}.shp'.format(continent))
+            shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
             # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
             # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
         if os.path.isfile(shp_fname):
@@ -144,7 +146,7 @@ if selection == 'Find Models':
     skip_rows=60
     cm_out = cm_out[skip_rows:-skip_rows,:,:]
     
-    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf]').add_to(map)
+    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
     
     rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
     
