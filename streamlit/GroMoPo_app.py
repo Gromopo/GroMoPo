@@ -2,7 +2,7 @@
 import streamlit as st
 import geopandas as gpd
 # import matplotlib.cm as cm
-# from matplotlib.pyplot import imread
+from matplotlib.pyplot import imread
 # import numpy as np
 import folium
 from folium.features import GeoJsonPopup, GeoJsonTooltip
@@ -156,8 +156,8 @@ if selection == 'Find Models':
     all_gdf,shp_dir = load_shp(stdir,epsg=epsg)
     
     rast_fname = os.path.join(os.path.dirname(shp_dir),'degraaf_gw_dep.png')
-    st.sidebar.info('{}'.format(os.path.isfile(rast_fname)))
-    # img = imread(rast_fname)
+    
+    img = imread(rast_fname)
     # I can't find a way to load a tif in...could save as txt or similar but would be a big file. TBD
     # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
     # img = gdal.Open(rast_fname).ReadAsArray()
