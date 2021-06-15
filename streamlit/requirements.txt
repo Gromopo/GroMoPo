@@ -1,5 +1,5 @@
 folium
-Pillow
+gdal
 geopandas
 numpy
 matplotlib
