@@ -144,13 +144,13 @@ if selection == 'Find Models':
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='x').add_to(map)
     
     rast_fname = os.path.join(os.path.dirname(os.path.dirname(shp_fname)),'degraaf_gw_dep.map')
-    st.sidebar.info("{}".format(rast_fname))
-    st.sidebar.info("{}".format(os.path.isfile(rast_fname)))
-    # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
-    # cm_out = cmap(img)
-    # skip_rows=60
-    # cm_out = cm_out[skip_rows:-skip_rows,:,:]
+    img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
     
+    cm_out = cmap(img)
+    skip_rows=60
+    cm_out = cm_out[skip_rows:-skip_rows,:,:]
+    st.sidebar.info("{}".format(img.shape))
+    st.sidebar.info("{}".format(cm_out.shape))
     # rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
     
     # rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
