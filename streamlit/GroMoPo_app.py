@@ -45,7 +45,48 @@ def cmap(img,cmap='viridis',nan_val=None,vminmax=[0,100]):
     
     
     
+#%% Load shapefiles in once before page loads
+
+if platform.system() == 'Darwin':
+    stdir = ''
+else:
+    stdir = os.path.join(os.getcwd()) # or provide path to \GroMoPo\streamlit\ folder
+    
+image_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
+if not os.path.isfile(image_path):
+    # Add streamlit for web
+    stdir = os.path.join(os.getcwd(),'streamlit')
+
+epsg = 3857# mercator default 
+# Load each continent and concatenate - might make more sense to load only one global shp in
+continents = ['africa','oceania','asia','europe','north_america','south_america']
+shp_dir = os.path.join('data','shapes')
+
+all_gdfs = []
+for continent in continents:
+    if platform.system() == 'Darwin':
+        shp_fname = os.path.join('..',shp_dir,'{}.shp'.format(continent))
+        # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
+        # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
+    else:
+        shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
+        # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
+        # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
+    if os.path.isfile(shp_fname):
+        temp_df=gpd.read_file(shp_fname)
+        if temp_df.crs.to_epsg() != epsg:
+            temp_df.to_crs(epsg=epsg,inplace=True)
+        all_gdfs.append(temp_df)
+
+all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
+if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
+    all_gdf.to_crs(epsg=epsg,inplace=True)
+
 #%%
+
+
+
+
 # Configure for wide layout
 st.set_page_config(layout="wide")
 
@@ -112,30 +153,7 @@ if selection == 'Find Models':
     st.title('GroMoPo — Groundwater Model Portal')
 
     st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
-    epsg = 3857# mercator default 
-    # Load each continent and concatenate - might make more sense to load only one global shp in
-    continents = ['africa','oceania','asia','europe','north_america','south_america']
-    shp_dir = os.path.join('data','shapes')
     
-    all_gdfs = []
-    for continent in continents:
-        if platform.system() == 'Darwin':
-            shp_fname = os.path.join('..',shp_dir,'{}.shp'.format(continent))
-            # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
-            # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
-        else:
-            shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
-            # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
-            # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
-        if os.path.isfile(shp_fname):
-            temp_df=gpd.read_file(shp_fname)
-            if temp_df.crs.to_epsg() != epsg:
-                temp_df.to_crs(epsg=epsg,inplace=True)
-            all_gdfs.append(temp_df)
-    
-    all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
-    if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
-        all_gdf.to_crs(epsg=epsg,inplace=True)
     
 
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg),min_zoom=3,max_bounds=True)
@@ -153,8 +171,8 @@ if selection == 'Find Models':
     skip_rows=60
     cm_out = img[skip_rows:-skip_rows,:,:]
     
-    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
-    rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
+    # rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
+    # rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
     
     
     
