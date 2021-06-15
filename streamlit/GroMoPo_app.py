@@ -43,6 +43,38 @@ def read_markdown_file(markdown_file):
 #     cm_out[np.isnan(img2),:] = 1
 #     return cm_out
 
+popup = GeoJsonPopup(
+            fields=["id", "devdate", "name", "url", "custodian", "spscale", "purpose", "archive", "coupling", "contribu_1"],
+            aliases=["ID", "Date Developed", "Name", "URL", "Custodian", "Spatial Scale", "Purpose", "Archive", "Coupling", "Contributed by"],
+            localize=True,
+            labels=True,
+            style="background-color: yellow;",
+        )
+    
+    
+    
+# This and all map related commands would be nice to cache, but not easy: https://github.com/randyzwitch/streamlit-folium/issues/4
+def plot_map(gdf,img,popup=None):
+    
+    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)')
+    rgroup.add_child(folium.raster_layers.ImageOverlay(img,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))
+    
+    marker_cluster = plugins.MarkerCluster(control=False)
+    
+    for _, r in gdf.to_crs(epsg='4326').iterrows():
+        folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
+
+    mlayer=folium.GeoJson(gdf,name='Groundwater models', popup=popup, style_function = lambda feature: {
+                'fillColor': 'grey',
+                'weight': 1,
+                'fillOpacity': 0.7,
+    })
+    return rgroup, marker_cluster, mlayer
+    
+
+    
+    
+    
 @st.cache    
 def load_shp(dirname,continents = ['africa','oceania','asia','europe','north_america','south_america'],
              epsg = 3857, shp_dir=os.path.join('data','shapes')):
@@ -77,7 +109,7 @@ def read_img(fname,skip_rows=60):
     cm_out = img[skip_rows:-skip_rows,:,:]
     return cm_out
         
-#%% Load shapefiles in once before page loads
+#%% Load shapefiles in once
 
 # Configure for wide layout
 st.set_page_config(layout="wide")
@@ -93,8 +125,16 @@ else:
         logo_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
 
 epsg = 3857
+# Load shapefiles of models
 all_gdf,shp_dir = load_shp(stdir,epsg=epsg)
 
+# Load water table base map
+rast_fname = os.path.join(os.path.dirname(shp_dir),'degraaf_gw_dep.png')
+img = read_img(rast_fname)
+
+
+
+#%% App
 # Configure app layout and sidebar menu
 st.sidebar.title('Navigation')
 
@@ -108,12 +148,7 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-# st.sidebar.info("{}".format(os.path.isdir(shp_dir2)))
-# st.sidebar.info("{}".format(shp_dir2))
 
-# st.sidebar.info("{}".format(os.path.isfile(logo_path)))
-# st.sidebar.info("{}".format(logo_path))
-        
 st.sidebar.image(logo_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
 if selection == 'Home':
@@ -155,103 +190,20 @@ if selection == 'Find Models':
 
     st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
     
-
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg),min_zoom=3,max_bounds=True)
-    
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',name='ArcWorldImagery', attr='x').add_to(map)
     
     
+    rgroup, marker_cluster, mlayer = plot_map(all_gdf,img,popup=popup)
     
-    rast_fname = os.path.join(os.path.dirname(shp_dir),'degraaf_gw_dep.png')
+    rgroup.add_to(map)
+    marker_cluster.add_to(map)
+    mlayer.add_to(map)
     
-    img = read_img(rast_fname)
-    # I can't find a way to load a tif in...could save as txt or similar but would be a big file. TBD
-    # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
-    # img = gdal.Open(rast_fname).ReadAsArray()
-        
-    # cm_out = cmap(img)
-    # skip_rows=60
-    # cm_out = img[skip_rows:-skip_rows,:,:]
-    
-    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
-    rgroup.add_child(folium.raster_layers.ImageOverlay(img,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
-    
-    
-    
-    marker_cluster = plugins.MarkerCluster(control=False).add_to(map)
-
-    # popup_AU = GeoJsonPopup(
-    #     fields=["Custodian", "Dev date", "Code"],
-    #     aliases=["Custodian", "Dev date", "Code"],
-    #     localize=True,
-    #     labels=True,
-    #     style="background-color: yellow;",
-    # )
-
-    # tooltip_AU = GeoJsonTooltip(
-    #     fields=["Custodian", "Dev date", "Code"],
-    #     aliases=["Custodian", "Dev date", "Code"],
-    #     localize=True,
-    #     sticky=False,
-    #     labels=True,
-    #     style="""
-    #         background-color: #F0EFEF;
-    #         border: 2px solid black;
-    #         border-radius: 3px;
-    #         box-shadow: 3px;
-    #     """,
-    #     max_width=800,
-    # )
-
-    popup_NA = GeoJsonPopup(
-            fields=["id", "devdate", "name", "url", "custodian", "spscale", "purpose", "archive", "coupling", "contribu_1"],
-            aliases=["ID", "Date Developed", "Name", "URL", "Custodian", "Spatial Scale", "Purpose", "Archive", "Coupling", "Contributed by"],
-            localize=True,
-            labels=True,
-            style="background-color: yellow;",
-        )
-    
-    
-    for _, r in all_gdf.to_crs(epsg='4326').iterrows():
-        folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
-
-    h = folium.GeoJson(all_gdf,name='Groundwater models', popup=popup_NA, style_function = lambda feature: {
-                'fillColor': 'grey',
-                'weight': 1,
-                'fillOpacity': 0.7,
-    }).add_to(map)
-
-
-
-
-    # for _, r in AUS_gdf_points.iterrows():
-    #     folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
-
-    # for _, r in NA_gdf_points.iterrows():
-    #     folium.Marker(location=[r['lat'], r['lon']]).add_to(marker_cluster)
-
-    # g = folium.GeoJson(AUS_gdf_polygs, popup=popup_AU, tooltip=tooltip_AU, style_function = lambda feature: {
-    #         'fillColor': 'grey',
-    #         'weight': 1,
-    #         'fillOpacity': 0.7,
-    # }).add_to(map)
-
-    # h = folium.GeoJson(NA_gdf_polygs, popup=popup_NA, style_function = lambda feature: {
-    #             'fillColor': 'grey',
-    #             'weight': 1,
-    #             'fillOpacity': 0.7,
-    # }).add_to(map)
-
     map.add_child(folium.LayerControl())
-    # if epsg == 3857:
-    #     map.setMaxBounds([[-20026376.39, -20048966.10],
-    #                       [20026376.39, 20048966.10]]) # if EPSG=3857 # Pseudo-Mercator
-    # elif epsg == 4326:
-    #     map.setMaxBounds([[-180,-85.06],[180,85.06]]) # if EPSG=4326 # WGS84
 
     Fullscreen().add_to(map)
-
+    
     folium_static(map, height=700, width=1400)
     
-#     # map.save('test.html')
