@@ -1,6 +1,6 @@
 folium
-geopandas
 rasterio
+geopandas
 numpy
 matplotlib
 streamlit-folium
