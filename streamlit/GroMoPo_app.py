@@ -2,7 +2,7 @@
 import streamlit as st
 import geopandas as gpd
 import matplotlib.cm as cm
-import gdal
+from osgeo import gdal
 import numpy as np
 import folium
 from folium.features import GeoJsonPopup, GeoJsonTooltip
