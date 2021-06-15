@@ -48,14 +48,14 @@ def cmap(img,cmap='viridis',nan_val=None,vminmax=[0,100]):
 #%% Load shapefiles in once before page loads
 
 if platform.system() == 'Darwin':
-    stdir = ''
+    image_path = 'GroMoPo_logo_V1.png'
 else:
     stdir = os.path.join(os.getcwd()) # or provide path to \GroMoPo\streamlit\ folder
-    
-image_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
-if not os.path.isfile(image_path):
-    # Add streamlit for web
-    stdir = os.path.join(os.getcwd(),'streamlit')
+    image_path = os.path.join(os.getcwd(),'GroMoPo_logo_V1.png')
+    if not os.path.isfile(image_path):
+        # Add streamlit for web
+        stdir = os.path.join(os.getcwd(),'streamlit')
+        image_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
 
 epsg = 3857# mercator default 
 # Load each continent and concatenate - might make more sense to load only one global shp in
@@ -103,15 +103,7 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-if platform.system() == 'Darwin':
-    image_path = 'GroMoPo_logo_V1.png'
-else:
-    stdir = os.path.join(os.getcwd()) # or provide path to \GroMoPo\streamlit\ folder
-    image_path = os.path.join(os.getcwd(),'GroMoPo_logo_V1.png')
-    if not os.path.isfile(image_path):
-        # Add streamlit for web
-        stdir = os.path.join(os.getcwd(),'streamlit')
-        image_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
+
         
 st.sidebar.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
