@@ -1,7 +1,7 @@
 # IMPORTS
 import streamlit as st
 import geopandas as gpd
-import rasterio as rio
+from PIL import Image
 import numpy as np
 import folium
 from folium.features import GeoJsonPopup, GeoJsonTooltip
@@ -19,12 +19,12 @@ import os
 def read_markdown_file(markdown_file):
     return Path(markdown_file).read_text()
 
-def load_rast(fname,band=0):
-    with rio.open(fname) as src:
-        img = src.read()[band]
-        # bounds = src.bounds[:]
-        # bounds = [[bounds[1],bounds[0]],[bounds[3],bounds[2]]]
-    return img
+# def load_rast(fname,band=0):
+#     with rio.open(fname) as src:
+#         img = src.read()[band]
+#         # bounds = src.bounds[:]
+#         # bounds = [[bounds[1],bounds[0]],[bounds[3],bounds[2]]]
+#     return img
 
 def cmap(img,cmap='viridis',nan_val=None,vminmax=[0,100]):
     import matplotlib.cm as cm # only called once
@@ -145,18 +145,17 @@ if selection == 'Find Models':
     
     rast_fname = os.path.join(os.path.dirname(os.path.dirname(shp_fname)),'degraaf_gw_dep.map')
     # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
-    with rio.open(rast_fname) as src:
-        img = src.read()[0]
+    img = Image.open(rast_fname)
         
     st.sidebar.info("{}".format(img.shape))
-    # cm_out = cmap(img)
-    # skip_rows=60
-    # cm_out = cm_out[skip_rows:-skip_rows,:,:]
+    cm_out = cmap(img)
+    skip_rows=60
+    cm_out = cm_out[skip_rows:-skip_rows,:,:]
 
-    # st.sidebar.info("{}".format(cm_out.shape))
-    # rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
+    st.sidebar.info("{}".format(cm_out.shape))
+    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
     
-    # rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
+    rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
     
     
     
