@@ -66,7 +66,7 @@ if platform.system() == 'Darwin':
     image_path = 'GroMoPo_logo_V1.png'
 else:
     stdir = os.path.join(os.getcwd()) # or provide path to \GroMoPo\streamlit\ folder
-    image_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
+    image_path = os.path.join(os.getcwd(),'GroMoPo_logo_V1.png')
 
 st.sidebar.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
