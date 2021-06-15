@@ -1,9 +1,9 @@
 # IMPORTS
 import streamlit as st
 import geopandas as gpd
-import matplotlib.cm as cm
+# import matplotlib.cm as cm
 # from matplotlib.pyplot import imread
-import numpy as np
+# import numpy as np
 import folium
 from folium.features import GeoJsonPopup, GeoJsonTooltip
 from folium import plugins
@@ -27,21 +27,21 @@ def read_markdown_file(markdown_file):
 #         # bounds = [[bounds[1],bounds[0]],[bounds[3],bounds[2]]]
 #     return img
 
-def cmap(img,cmap='viridis',nan_val=None,vminmax=[0,100]):
-    if nan_val is None:
-        # Assume lowest value is nan value to skip in colormap
-        nan_val = img.min()
+# def cmap(img,cmap='viridis',nan_val=None,vminmax=[0,100]):
+#     if nan_val is None:
+#         # Assume lowest value is nan value to skip in colormap
+#         nan_val = img.min()
     
-    img2 = img.copy()
-    img2[img2==nan_val] = np.nan
-    cmap_obj = cm.get_cmap(cmap)
-    if vminmax[0] is None:
-        norm_data =(img2 - np.nanmin(img2))/(np.nanmax(img2)-np.nanmin(img2))
-    else:
-        norm_data = (img2-vminmax[0])/(vminmax[1]-vminmax[0])
-    cm_out = cmap_obj(norm_data)
-    cm_out[np.isnan(img2),:] = 1
-    return cm_out
+#     img2 = img.copy()
+#     img2[img2==nan_val] = np.nan
+#     cmap_obj = cm.get_cmap(cmap)
+#     if vminmax[0] is None:
+#         norm_data =(img2 - np.nanmin(img2))/(np.nanmax(img2)-np.nanmin(img2))
+#     else:
+#         norm_data = (img2-vminmax[0])/(vminmax[1]-vminmax[0])
+#     cm_out = cmap_obj(norm_data)
+#     cm_out[np.isnan(img2),:] = 1
+#     return cm_out
     
     
     
