@@ -69,6 +69,13 @@ def load_shp(dirname,continents = ['africa','oceania','asia','europe','north_ame
         all_gdf.to_crs(epsg=epsg,inplace=True)
     
     return all_gdf,shp_dir2
+
+@st.cache  
+def read_img(fname,skip_rows=60):
+    img = imread(fname)
+    
+    cm_out = img[skip_rows:-skip_rows,:,:]
+    return cm_out
         
 #%% Load shapefiles in once before page loads
 
@@ -157,7 +164,7 @@ if selection == 'Find Models':
     
     rast_fname = os.path.join(os.path.dirname(shp_dir),'degraaf_gw_dep.png')
     
-    img = imread(rast_fname)
+    img = read_img(rast_fname)
     # I can't find a way to load a tif in...could save as txt or similar but would be a big file. TBD
     # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
     # img = gdal.Open(rast_fname).ReadAsArray()
@@ -166,8 +173,8 @@ if selection == 'Find Models':
     # skip_rows=60
     # cm_out = img[skip_rows:-skip_rows,:,:]
     
-    # rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
-    # rgroup.add_child(folium.raster_layers.ImageOverlay(cm_out,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
+    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)').add_to(map)
+    rgroup.add_child(folium.raster_layers.ImageOverlay(img,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))#.add_to(map) #
     
     
     
