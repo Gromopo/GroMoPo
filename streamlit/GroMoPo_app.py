@@ -2,7 +2,6 @@
 import streamlit as st
 import geopandas as gpd
 import matplotlib.cm as cm
-import netCDF4
 import numpy as np
 import folium
 from folium.features import GeoJsonPopup, GeoJsonTooltip
@@ -140,10 +139,12 @@ if selection == 'Find Models':
 
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg),min_zoom=3,max_bounds=True)
 
-    folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x').add_to(map)
-    folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='x').add_to(map)
+    folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
+    folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',name='ArcWorldImagery', attr='x').add_to(map)
     
     rast_fname = os.path.join(os.path.dirname(os.path.dirname(shp_fname)),'degraaf_gw_dep.map')
+    
+    # I can't find a way to load a tif in...could save as txt or similar but would be a big file. TBD
     # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
     # img = gdal.Open(rast_fname).ReadAsArray()
         

@@ -1,5 +1,4 @@
 folium
-netCDF4
 geopandas
 numpy
 matplotlib
