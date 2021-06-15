@@ -65,18 +65,18 @@ epsg = 3857# mercator default
 continents = ['africa','oceania','asia','europe','north_america','south_america']
 shp_dir = os.path.join('data','shapes')
 
-all_gdfs = []
-for continent in continents:
-    if platform.system() == 'Darwin':
-        shp_dir2 = os.path.join('..',shp_dir)
-        shp_fname = os.path.join('..',shp_dir,'{}.shp'.format(continent))
-        # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
-        # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
-    else:
-        shp_dir2 = os.path.join(os.path.dirname(stdir),shp_dir)
-        shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
-        # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
-        # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
+# all_gdfs = []
+# for continent in continents:
+#     if platform.system() == 'Darwin':
+#         shp_dir2 = os.path.join('..',shp_dir)
+#         shp_fname = os.path.join('..',shp_dir,'{}.shp'.format(continent))
+#         # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
+#         # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
+#     else:
+#         shp_dir2 = os.path.join(os.path.dirname(stdir),shp_dir)
+#         shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
+#         # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
+#         # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
 #     if os.path.isfile(shp_fname):
 #         temp_df=gpd.read_file(shp_fname)
 #         if temp_df.crs.to_epsg() != epsg:
@@ -107,13 +107,13 @@ st.sidebar.title('About')
 
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-st.sidebar.info("{}".format(os.path.isdir(shp_dir2)))
-st.sidebar.info("{}".format(shp_dir2))
+# st.sidebar.info("{}".format(os.path.isdir(shp_dir2)))
+# st.sidebar.info("{}".format(shp_dir2))
 
 st.sidebar.info("{}".format(os.path.isfile(logo_path)))
 st.sidebar.info("{}".format(logo_path))
         
-# st.sidebar.image(logo_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+st.sidebar.image(logo_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
 # if selection == 'Home':
 #     if platform.system() == 'Darwin':
