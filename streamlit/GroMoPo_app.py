@@ -144,7 +144,10 @@ if selection == 'Find Models':
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='x').add_to(map)
     
     rast_fname = os.path.join(os.path.dirname(os.path.dirname(shp_fname)),'degraaf_gw_dep.map')
-    img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
+    # img = load_rast(rast_fname) # 36 MB, not sure effect on load time from github
+    with rio.open(rast_fname) as src:
+        img = src.read()[0]
+        
     st.sidebar.info("{}".format(img.shape))
     # cm_out = cmap(img)
     # skip_rows=60
