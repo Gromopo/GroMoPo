@@ -54,8 +54,8 @@ def load_shp(dirname,continents = ['africa','oceania','asia','europe','north_ame
             # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
             # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
         else:
-            shp_dir2 = os.path.join(os.path.dirname(stdir),shp_dir)
-            shp_fname = os.path.join(os.path.dirname(stdir),shp_dir,'{}.shp'.format(continent))
+            shp_dir2 = os.path.join(os.path.dirname(dirname),shp_dir)
+            shp_fname = os.path.join(os.path.dirname(dirname),shp_dir,'{}.shp'.format(continent))
             # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
             # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
         if os.path.isfile(shp_fname):
@@ -92,6 +92,8 @@ else:
         stdir = os.path.join(stdir,'streamlit')
         logo_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
 
+epsg = 3857
+all_gdf,shp_dir = load_shp(stdir,epsg=epsg)
 
 # Configure app layout and sidebar menu
 st.sidebar.title('Navigation')
@@ -153,14 +155,13 @@ if selection == 'Find Models':
 
     st.write("Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is archiving existing models, but the repository could eventually archive model input and scripts for translating commonly used geospatial datasets into model inputs.")
     
-    epsg = 3857
 
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg),min_zoom=3,max_bounds=True)
     
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',name='ArcWorldImagery', attr='x').add_to(map)
     
-    all_gdf,shp_dir = load_shp(stdir,epsg=epsg)
+    
     
     rast_fname = os.path.join(os.path.dirname(shp_dir),'degraaf_gw_dep.png')
     
