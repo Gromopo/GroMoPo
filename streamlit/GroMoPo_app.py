@@ -47,6 +47,9 @@ def read_markdown_file(markdown_file):
     
 #%% Load shapefiles in once before page loads
 
+# Configure for wide layout
+st.set_page_config(layout="wide")
+
 if platform.system() == 'Darwin':
     logo_path = 'GroMoPo_logo_V1.png'
 else:
@@ -89,8 +92,7 @@ for continent in continents:
 
 
 
-# Configure for wide layout
-st.set_page_config(layout="wide")
+
 
 # Configure app layout and sidebar menu
 st.sidebar.title('Navigation')
@@ -108,7 +110,7 @@ st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 st.sidebar.info("{}".format(os.path.isdir(shp_dir2)))
 st.sidebar.info("{}".format(shp_dir2))
 
-st.sidebar.info("{}".format(os.path.isdir(logo_path)))
+st.sidebar.info("{}".format(os.path.isfile(logo_path)))
 st.sidebar.info("{}".format(logo_path))
         
 # st.sidebar.image(logo_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
