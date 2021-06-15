@@ -1,6 +1,6 @@
 folium
+rasterio
 geopandas
-Pillow
 numpy
 matplotlib
 streamlit-folium
