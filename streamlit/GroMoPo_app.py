@@ -82,7 +82,7 @@ else:
     logo_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
     if not os.path.isfile(logo_path):
         # Add streamlit for web
-        stdir = os.path.join(os.getcwd(),'streamlit')
+        stdir = os.path.join(stdir,'streamlit')
         logo_path = os.path.join(stdir,'GroMoPo_logo_V1.png')
 
 
@@ -107,13 +107,13 @@ st.sidebar.info("{}".format(logo_path))
         
 # st.sidebar.image(logo_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
-# if selection == 'Home':
-#     if platform.system() == 'Darwin':
-#         image_path = 'GroMoPo home banner.png'
-#         markdown = read_markdown_file('home_page.md')
-#     else:
-#         image_path = os.path.join(stdir,'GroMoPo home banner.png')
-#         markdown = read_markdown_file(os.path.join(stdir,'home_page.md'))
+if selection == 'Home':
+    if platform.system() == 'Darwin':
+        image_path = 'GroMoPo home banner.png'
+        markdown = read_markdown_file('home_page.md')
+    else:
+        image_path = os.path.join(stdir,'GroMoPo home banner.png')
+        markdown = read_markdown_file(os.path.join(stdir,'home_page.md'))
 
 #     st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 #     st.markdown(markdown, unsafe_allow_html=True)
