@@ -121,8 +121,8 @@ if selection == 'Home':
         image_path = os.path.join(stdir,'GroMoPo home banner.png')
         markdown = read_markdown_file(os.path.join(stdir,'home_page.md'))
 
-    st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
-    st.markdown(markdown, unsafe_allow_html=True)
+    # st.image(image_path, caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+    # st.markdown(markdown, unsafe_allow_html=True)
 
 if selection == 'Submit Model':
 
