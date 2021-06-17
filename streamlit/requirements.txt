@@ -1,3 +1,4 @@
 folium
 geopandas
+matplotlib
 streamlit-folium
