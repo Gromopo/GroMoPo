@@ -8,7 +8,9 @@ through an object oriented framework.
 # Import necessary libraries 
 import streamlit as st
 
-# Define the multipage class to manage the multiple apps in our program 
+# Define the multipage class to manage the multiple apps in our program
+
+
 class MultiPage: 
     """Framework for combining multiple streamlit applications."""
 
@@ -25,7 +27,6 @@ class MultiPage:
         """
 
         self.pages.append({
-          
                 "title": title, 
                 "function": func
             })
