@@ -1,9 +1,6 @@
-# IMPORTS
 import streamlit as st
 import geopandas as gpd
-# import matplotlib.cm as cm
 from matplotlib.pyplot import imread
-# import numpy as np
 import folium
 from folium.features import GeoJsonPopup, GeoJsonTooltip
 from folium import plugins
@@ -14,34 +11,17 @@ from pathlib import Path
 import platform
 import os
 
-#%% Supporting functions - eventually create function library?
+# Our app libs - possibly move to own folder
+import helpers
+from multipage import MultiPage
+from pages import home, submit_model, about, model_finder
 
-# Configure multipage selector — reads .md files
-def read_markdown_file(markdown_file):
-    return Path(markdown_file).read_text()
+'''
+This is the main app file that takes care of managing all subpages.
+Logic about reading and displaying information is contained to each page.
+'''
 
-# def load_rast(fname,band=0):
-#     with rio.open(fname) as src:
-#         img = src.read()[band]
-#         # bounds = src.bounds[:]
-#         # bounds = [[bounds[1],bounds[0]],[bounds[3],bounds[2]]]
-#     return img
 
-# def cmap(img,cmap='viridis',nan_val=None,vminmax=[0,100]):
-#     if nan_val is None:
-#         # Assume lowest value is nan value to skip in colormap
-#         nan_val = img.min()
-    
-#     img2 = img.copy()
-#     img2[img2==nan_val] = np.nan
-#     cmap_obj = cm.get_cmap(cmap)
-#     if vminmax[0] is None:
-#         norm_data =(img2 - np.nanmin(img2))/(np.nanmax(img2)-np.nanmin(img2))
-#     else:
-#         norm_data = (img2-vminmax[0])/(vminmax[1]-vminmax[0])
-#     cm_out = cmap_obj(norm_data)
-#     cm_out[np.isnan(img2),:] = 1
-#     return cm_out
 
 popup = GeoJsonPopup(
             fields=["id", "devdate", "name", "url", "custodian", "spscale", "purpose", "archive", "coupling", "contribu_1"],
