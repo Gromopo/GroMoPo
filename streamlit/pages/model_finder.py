@@ -23,7 +23,7 @@ def plot_map(gdf, img, popup=None):
     for _, r in gdf.to_crs(epsg='4326').iterrows():
         folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
 
-    mlayer=folium.GeoJson(gdf,name='Groundwater models', popup=popup, style_function = lambda feature: {
+    mlayer=folium.GeoJson(gdf, name='Groundwater models', popup=popup, style_function = lambda feature: {
                 'fillColor': 'grey',
                 'weight': 1,
                 'fillOpacity': 0.7,
@@ -33,30 +33,25 @@ def plot_map(gdf, img, popup=None):
 
 @st.cache    
 def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_america', 'south_america'],
-             epsg = 3857, shp_dir=os.path.join('data','shapes')):
+             epsg=3857, shp_dir=os.path.join('data', 'shapes')):
     all_gdfs = []
     for continent in continents:
-        if platform.system() == 'Darwin':
-            shp_dir2 = os.path.join('..', shp_dir)
-            shp_fname = os.path.join('..', shp_dir,'{}.shp'.format(continent))
-            # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
-            # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
-        else:
-            shp_dir2 = os.path.join(os.path.dirname(dirname),shp_dir)
-            shp_fname = os.path.join(os.path.dirname(dirname),shp_dir,'{}.shp'.format(continent))
-            # AUS_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/Australia.shp')
-            # NA_gdf_polygs = gpd.read_file(os.getcwd() + '/QGIS/shapes/north_america.shp')
+        shp_fname = os.path.join('..', shp_dir, '{}.shp'.format(continent))
+        # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
+        # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
         if os.path.isfile(shp_fname):
-            temp_df=gpd.read_file(shp_fname)
+            temp_df = gpd.read_file(shp_fname)
             if temp_df.crs.to_epsg() != epsg:
-                temp_df.to_crs(epsg=epsg,inplace=True)
+                temp_df.to_crs(epsg=epsg, inplace=True)
             all_gdfs.append(temp_df)
     
     all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
+    if all_gdf.crs is None:
+        all_gdf.set_crs(epsg, allow_override=True, inplace=True)
     if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
-        all_gdf.to_crs(epsg=epsg,inplace=True)
+        all_gdf.to_crs(epsg=epsg, inplace=True)
     
-    return all_gdf,shp_dir2
+    return all_gdf, os.path.join('..', shp_dir)
 
 
 @st.cache  
@@ -79,10 +74,10 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf,shp_dir = load_shp(stdir,epsg=epsg)
+all_gdf, shp_dir = load_shp(".", epsg=epsg)
 
 # Load water table base map
-rast_fname = os.path.join(os.path.dirname(shp_dir),'degraaf_gw_dep.png')
+rast_fname = os.path.join(os.path.dirname(shp_dir), 'degraaf_gw_dep.png')
 img = read_img(rast_fname)
 
 
@@ -92,7 +87,7 @@ def app():
              " a portal of regional and global numerical groundwater models."
              "The first priority is archiving existing models, but the repository could eventually archive"
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
-    map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg),min_zoom=3,max_bounds=True)
+    map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                      name='ArcWorldImagery', attr='x').add_to(map)
