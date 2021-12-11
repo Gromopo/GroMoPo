@@ -3,12 +3,23 @@ import json
 from utils import helpers as hp
 
 
+def save_data_to_storage(data):
+	pass
+
+
+def send_email_to(name, info):
+	pass
+
+
 def process_data(data):
 	'''
 	Processes the input data for review, storage and email etc.
 	This is a callback from the submit button of the form
 	'''
 	print(data)
+	save_data_to_storage(data)
+	send_email_to("name of reviewer", "info")
+	send_email_to("name of model dev", "info")
 
 
 def app():
