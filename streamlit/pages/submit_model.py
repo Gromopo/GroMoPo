@@ -4,6 +4,11 @@ from utils import helpers as hp
 
 
 def save_data_to_storage(data):
+	'''
+	Save data as pickled geopandas frame to storage with unique ID
+	-> How do we update a common data-base after submission?
+	Will there be a merge script?
+	'''
 	pass
 
 
