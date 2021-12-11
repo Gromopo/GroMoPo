@@ -132,14 +132,22 @@ def app():
 	else:
 		data["ModelScale"] = scale_r
 
-#2.6. Model extent (upload zipfile; optional, don't spend time looking for it if not easily available), if model shapefile unavailable please specify the model location as Lat | Lon (e.g., 36.069 ; -94.172), ideally center of domain. This can be easily achieved through e.g. google maps where you can right
+	st.markdown("Model extent (upload zipfile; optional, don't spend time looking for it if not easily available),"
+				" if model shapefile unavailable please specify the model location as Lat | Lon (e.g., 36.069 ; -94.172),"
+				" ideally center of domain. This can be easily achieved through e.g. google maps where you can right"
+				" click on a point in the map and then click on the coordinates it automatically shows."
+				" Then you can simply copy those in the fields below.")
+	t_lat = st.text_input("Lat", "")
+	t_lon = st.text_input("Lon", "")
+	data["Lat"] = t_lat
+	data["Lon"] = t_lon
 
-#click on a point in the map and then click on the coordinates it automatically shows. Then you can simply copy those in the fields below.
-#Two fields (float numbers) with Latitude and Longitude coordinate input.
-#2.7. Number of (model) layers in model domain
-#‘1 layer’, ‘2-5 layers’, ‘6-10 layers’, ‘11-15 layers’, ‘16-20 layers’, ‘>20 layers’ options.
-#2.8. Maximum depth of model below ground surface (m)
-#Field with numerical value – integer. OR should we provide ranges like in question 3.3.? Might be easier for the user to fill in.
+	n_layers = st.radio("Model Layers", ("1 layer", "2-5 layers", "6-10 layers", "11-15 layers", "16-20 layers", ">20 layers"))
+	data["Layers"] = n_layers
+
+	n_depth = st.number_input("Maximum depth of model below ground surface (m)", min_value=1, max_value=10000)
+	data["Depth"] = n_depth
+
 #2.9. Time range of model (or SS for steady-state)
 #Field with range for years (XXXX - YYYY) or SS.
 
