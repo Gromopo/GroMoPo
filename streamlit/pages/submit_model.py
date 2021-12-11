@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit_tags as stt
 import json
 import re
+from datetime import datetime
 from utils import helpers as hp
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
@@ -67,7 +68,7 @@ def app():
 	b_dev = st.radio("Are you the original model developer?", ("Yes", "No"))
 	data["OriginalDev"] = b_dev
 
-	n_year = st.number_input("Model development/publication YEAR *", min_value=1960, max_value=2030, value=2000, step=1)
+	n_year = st.slider("Model development/publication YEAR *", min_value=datetime(1970, 1, 1, 9, 30), max_value=datetime(2030, 1, 1, 9, 30), value=datetime(2020, 1, 1, 9, 30), format="MM/DD/YY")
 	data["ModelYear"] = n_year
 
 	t_m_avail = st.selectbox("Model data availability *", ("Report/paper only", "Output publicly available",
@@ -97,19 +98,40 @@ def app():
 
 	data["ModelAuthors"] = l_names
 
-#Model general information (ADDITIONAL INFORMATION)
-#GroMoPo can already see the ingredients in the shopping bags! Now it is curious about some general information such as – how many portions will it eat? How old are the ingredients?
-#2.1. Model developer primary email
-#Text field to fill in the email – constrain to string datatype only, has to contain “@” – check upon clicking the submit button (if possible)
+	st.markdown("# Model general information (ADDITIONAL INFORMATION)")
+	st.markdown("GroMoPo can already see the ingredients in the shopping bags! "
+				"Now it is curious about some general information such as – how many portions will it eat?"
+				" How old are the ingredients?")
 
-#2.2. Model review
-#‘Double-blind peer review journal’, ‘Peer review journal’, ‘Peer reviewed report (includes internal review at governmental agencies like USGS)’, ‘Not peer reviewed’, ‘Not sure’ options.
-#2.3. Citation(s) for report, data and/or code (DOI and/or ISBN)
-#Two text fields? One for DOI number and one for ISBN?
-#2.4. Report, data or code files (Max. file-size: 5mb)
-#File upload field.
-#2.5. Model scale
-#Is it possible to make a slider here with km2? If not, we can go back to the classification in the previous version which was: ‘Global’, ‘Continental’, ‘National’, ‘10 001 - 100 000 km²’, ‘1 001 - 10 000 km²’, ‘101 - 1000 km²’, ‘11 - 100 km²’, ‘< 10 km²’, ‘Other’
+	t_email_dev = st.text_input("Model developer primary email *", "")
+	data["DevEmail"] = t_email_dev
+
+	b_review = st.radio("Model review",
+						 ("Double-blind peer review journal",
+						  "Peer review journal",
+						  "Peer reviewed report (includes internal review at governmental agencies like USGS)",
+						  "Not peer reviewed",
+						  "Not sure"))
+	data["ModelReview"] = b_review
+
+	t_cite = st.text_input("Citation(s) for report, data and/or code (DOI or ISBN)", "")
+	data["Cite"] = t_cite
+	# TODO check if valid?
+
+	#TODO
+	#2.4. Report, data or code files (Max. file-size: 5mb)
+	#File upload field.
+
+	scale_r = st.radio("Model Scale", ("Global", "Continental", "other->slider"))
+
+	n_scale = None
+	if scale_r == "other->slider":
+		n_scale = st.slider("Model scale km²", min_value=1, max_value=100000, value=2000, step=100)
+	if n_scale is not None:
+		data["ModelScale"] = n_scale
+	else:
+		data["ModelScale"] = scale_r
+
 #2.6. Model extent (upload zipfile; optional, don't spend time looking for it if not easily available), if model shapefile unavailable please specify the model location as Lat | Lon (e.g., 36.069 ; -94.172), ideally center of domain. This can be easily achieved through e.g. google maps where you can right
 
 #click on a point in the map and then click on the coordinates it automatically shows. Then you can simply copy those in the fields below.
