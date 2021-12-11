@@ -2,3 +2,4 @@ folium
 geopandas
 matplotlib
 streamlit-folium
+streamlit-tags

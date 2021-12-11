@@ -1,6 +1,11 @@
 import streamlit as st
+import streamlit_tags as stt
 import json
+import re
 from utils import helpers as hp
+
+# from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
+regex = re.compile(r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
 
 
 def save_data_to_storage(data):
@@ -27,6 +32,13 @@ def process_data(data):
 	send_email_to("name of model dev", "info")
 
 
+def is_valid(email):
+	if re.fullmatch(regex, email):
+		return True
+	else:
+		return False
+
+
 def app():
 	markdown = hp.read_markdown_file("pages/view/submit_page.md")
 	st.markdown(markdown, unsafe_allow_html=True)
@@ -36,25 +48,35 @@ def app():
 				" it would like to keep your personal credentials so it can contact you in future,"
 				" and reward frequent contributors.")
 
+	# collect all answers in this dict -> we can easily use this as json to sent it via mail
+	# and append it to one pandas data frame.
+	data = {}
+
 	# TODO color mandatory *
+	# This is possible but not very flexible -> more efficient to check when submit is pressed.
+	# if not t_name:
+	#	st.warning("Can't be empty.")
+
 	t_name = st.text_input("Your name (which may be different than model developer) *", "")
 	# Text field to fill in the name – constrain to string datatype only.
-	if not t_name:
-		st.warning("Can't be empty.")
+	data["SubmittedName"] = t_name
 
 	t_email = st.text_input("Your E-mail *", "")
-	# Text field to fill in the email – constrain to string datatype only,
-	# has to contain “@” – check upon clicking the submit button (if possible)
+	data["SubmittedEmail"] = t_email
 
 	b_dev = st.radio("Are you the original model developer?", ("Yes", "No"))
+	data["OriginalDev"] = b_dev
 
 	n_year = st.number_input("Model development/publication YEAR *", min_value=1960, max_value=2030, value=2000, step=1)
+	data["ModelYear"] = n_year
 
 	t_m_avail = st.selectbox("Model data availability *", ("Report/paper only", "Output publicly available",
 														   "Input and output publicly available", "Unsure"))
+	data["DataAvail"] = t_m_avail
 
 	b_country = st.radio("Is the model developer's institute located in the same country as the model location?  *",
 					 ("Yes", "No", "Unclear"))
+	data["SameCountry"] = b_country
 
 	#FIXME this should be cached
 	with open('utils/countries.json', 'r') as cs:
@@ -62,12 +84,18 @@ def app():
 	countries = json.loads(country_data)["countries"]
 	l_countries = [d['name'] for d in countries]
 	t_country = st.selectbox("Country of primary model developer or institution  *", l_countries)
+	data["ModelCountry"] = t_country
 
-#Model developers/authors (e.g.: A. Lastname1, C. Lastname2). If there are no personal credentials provided, please fill in the name of the organization that created the model *
-	#One line text field (un-editable) on top and below that a text field (user input) with button next to it
-# – so user can add authors one by one and there is no variation in separation by either ‘;’ or ‘,’.
-# Once the button is pressed the list of authors gets updated and shown in the upper text field so the user has a visual confirmation?
-# Maybe also a remove button? Maybe this is too complicated?
+	l_names = stt.st_tags(
+		label='Model developers/authors (e.g.: A. Lastname1 C. Lastname2). Max = 6'
+			  ' If there are no personal credentials provided, please fill in the name of the organization that created the model *',
+		text='Press enter to add more',
+		value=['T. Test'],
+		suggestions=['FirstName LastName'],
+		maxtags=6,
+		key='1')
+
+	data["ModelAuthors"] = l_names
 
 #Model general information (ADDITIONAL INFORMATION)
 #GroMoPo can already see the ingredients in the shopping bags! Now it is curious about some general information such as – how many portions will it eat? How old are the ingredients?
@@ -129,3 +157,4 @@ def app():
 
 	# This will trigger a message to the user that the data has been saved or if data is malformed/missing
 	st.button("Submit", help="Submit the form", on_click=process_data, args=data)
+	#TODO loop over all fields and tell the user which fields did not pass the consistency test
