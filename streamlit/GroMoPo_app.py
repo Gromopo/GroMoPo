@@ -5,15 +5,7 @@ from utils import helpers
 from utils.multipage import MultiPage
 from pages import home, about, submit_model, model_finder
 
-'''
-This is the main app file that takes care of managing all subpages.
-Logic about reading and displaying information is contained to each page.
-'''
-
 #st.set_page_config(layout="wide")
-
-# Title of the main page
-st.title("GroMoPoApp")
 
 st.sidebar.title('Navigation')
 
