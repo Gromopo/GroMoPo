@@ -40,11 +40,22 @@ def is_valid(email):
 		return False
 
 
+@st.cache
+def get_countries():
+	with open('utils/countries.json', 'r') as cs:
+		country_data = cs.read()
+	countries = json.loads(country_data)["countries"]
+	l_countries = [d['name'] for d in countries]
+	return l_countries
+
+
 def app():
 	markdown = hp.read_markdown_file("pages/view/submit_page.md")
 	st.markdown(markdown, unsafe_allow_html=True)
 
-	st.markdown("MANDATORY QUESTIONS(1 - 2 minutes)")
+	m_mark = "<font color='red' font-size='large'>*</font>"
+
+	st.markdown("# MANDATORY QUESTIONS(1 - 2 minutes)", unsafe_allow_html=True)
 	st.markdown("In case GroMoPo really liked your recipe (or fell ill after eating it!)"
 				" it would like to keep your personal credentials so it can contact you in future,"
 				" and reward frequent contributors.")
@@ -53,12 +64,11 @@ def app():
 	# and append it to one pandas data frame.
 	data = {}
 
-	# TODO color mandatory *
 	# This is possible but not very flexible -> more efficient to check when submit is pressed.
 	# if not t_name:
 	#	st.warning("Can't be empty.")
 
-	t_name = st.text_input("Your name (which may be different than model developer) *", "")
+	t_name = st.text_input("Your name (which may be different than model developer)", "")
 	# Text field to fill in the name – constrain to string datatype only.
 	data["SubmittedName"] = t_name
 
@@ -79,11 +89,7 @@ def app():
 					 ("Yes", "No", "Unclear"))
 	data["SameCountry"] = b_country
 
-	#FIXME this should be cached
-	with open('utils/countries.json', 'r') as cs:
-		country_data = cs.read()
-	countries = json.loads(country_data)["countries"]
-	l_countries = [d['name'] for d in countries]
+	l_countries = get_countries()
 	t_country = st.selectbox("Country of primary model developer or institution  *", l_countries)
 	data["ModelCountry"] = t_country
 
@@ -118,14 +124,17 @@ def app():
 	data["Cite"] = t_cite
 	# TODO check if valid?
 
-	#TODO
-	#2.4. Report, data or code files (Max. file-size: 5mb)
-	#File upload field.
+	uploaded_files = st.file_uploader("Report, data or code files (Max. file-size: 5mb)", accept_multiple_files=True)
+	for uploaded_file in uploaded_files:
+		bytes_data = uploaded_file.read()
+		st.write("filename:", uploaded_file.name)
+		st.write(bytes_data)
+	# TODO store data somewhere
 
-	scale_r = st.radio("Model Scale", ("Global", "Continental", "other->slider"))
+	scale_r = st.radio("Model Scale", ("Global", "Continental", "other-> select with a slider"))
 
 	n_scale = None
-	if scale_r == "other->slider":
+	if scale_r == "other-> select with a slider":
 		n_scale = st.slider("Model scale km²", min_value=1, max_value=100000, value=2000, step=100)
 	if n_scale is not None:
 		data["ModelScale"] = n_scale
@@ -148,42 +157,80 @@ def app():
 	n_depth = st.number_input("Maximum depth of model below ground surface (m)", min_value=1, max_value=10000)
 	data["Depth"] = n_depth
 
-#2.9. Time range of model (or SS for steady-state)
-#Field with range for years (XXXX - YYYY) or SS.
+	time_r = st.radio("Is the model only simulating steady state?", ("Yes", "No"))
 
-#3. Model technical information (ADDITIONAL INFORMATION)
-#GroMoPo can already smell the ingredients being cooked in the pot and knows that now is the time to add some spices. Tease his taste buds by answering the questions below!
-#3.1. Model code
-#‘MODFLOW’, ‘GSFLOW’, ‘Feflow’, ‘Parflow’, ‘Hydrogeosphere’, ‘GMS’, ‘HYDRUS’, ‘VS2D’, ‘Bespoke’, ‘Unknown’, ‘Other’ options, make the ‘Other’ option also a text field (string).
-#3.2. Model purpose
-#Current options – ‘groundwater resources’, ‘groundwater contamination’, ‘scientific investigation’ (not related to applied problem), ‘Subsidence’, ‘climate change’, ‘salt water intrusion’, ‘streamflow depletion’, ‘agricultural growth’, ‘decision support’, ‘Other:’.
-#3.3. Integration or coupling with other types of models
-#‘Surface water’, ‘Water use’, ‘Land surface model’, ‘Water management’, ‘Ecosystem health’, ‘Agent-based model’, ‘Economic’, ‘Solute transport’, ‘Geomechanical’, ‘None of the above’, ‘Other:’ options.
-#3.4. Model evaluation or calibration
-#Current options are ‘static water levels’, ‘dynamic water levels’, ‘baseflow’, ‘groundwater chemistry’, ‘contaminant concentrations’, ‘-Not sure’, ‘Other:’
-#3.5. Model Description (additional information)
-#	Text field where users can write any other information that they deem necessary.
+	n_time = None
+	if time_r == "No":
+		n_time = st.slider("Model time frame", min_value=datetime(1970, 1, 1, 9, 30), max_value=datetime(2030, 1, 1, 9, 30), value=datetime(2020, 1, 1, 9, 30), format="MM/DD/YY")
+	if n_time is not None:
+		data["ModelTime"] = n_time
+	else:
+		data["ModelTime"] = "SS"
 
-#4. Geological information (ADDITIONAL INFORMATION)
-#GroMoPo doesn’t like to eat rocks but sometimes when times are hard and nobody gives him yummy groundwater models to eat it comes back and tries to sift through the leftovers and crumbs.
-#4.1. Dominant geologic material (that model focuses on)
-#‘Unconsolidated sediments’, ‘Siliciclastic sedimentary (sandstones, shales)’, ‘Carbonate (including karst)’, ‘Crystalline’, ‘Volcanic’, ‘Model focuses on multiple geologic materials’, ‘Unsure’, ‘Other:’ options.
-#4.2. Geological input data available
-#‘Yes’, ‘No’ and ‘Unsure’ options.
+	st.markdown("# Model technical information (ADDITIONAL INFORMATION)")
+	st.markdown("GroMoPo can already smell the ingredients being cooked in the pot and knows that now is the time to add some spices."
+				" Tease his taste buds by answering the questions below!")
 
-#5. Feedback
-#GroMoPo would love to know about your experience in its kitchen and hopes you enjoyed spending time cooking here!
-#5.1. How long did it take to fill out this form?
-#‘1 Minute’, ‘1-5 Minutes’, ‘5-10 Minutes’, ‘10-15 Minutes’, ‘15 or more’ options.
-#5.2. Did you encounter any troubles while filling the form? Or do you have anything else you would like to share with GroMoPo?
-#Text field where the user can complain or share their thoughts.
+	code_r = st.radio("Model code?", ("MODFLOW", "GSFLOW", "Feflow", "Parflow", "Hydrogeosphere",
+									  "GMS", "HYDRUS", "VS2D", "Bespoke", "Unknown", "Other"))
+	if code_r == "Other":
+		c = st.text_input("Enter model framework name:", "")
+		data["ModelCode"] = c
+	else:
+		data["ModelCode"] = code_r
 
+	purpose_r = st.radio("Model purpose?", ("groundwater resources", "groundwater contamination",
+											"scientific investigation (not related to applied problem)",
+											"Subsidence", "climate change", "salt water intrusion",
+											"streamflow depletion", "agricultural growth", "decision support", "Other:"))
+	if purpose_r == "Other":
+		c = st.text_input("Enter model purpose:", "")
+		data["ModelPurpose"] = c
+	else:
+		data["ModelPurpose"] = purpose_r
 
-	#Slider example
-	#s = st.slider("pick", min_value=1, max_value=100, value=50, step=1)
-	#st.write(s)
+	eval_r = st.radio("Model evaluation or calibration?", ("static water levels", "dynamic water levels", "baseflow",
+															  "groundwater chemistry", "contaminant concentrations",
+															  "Not sure", "Other"))
 
-	data = None
+	if eval_r == "Other":
+		c = st.text_input("Enter model evaluation scheme:", "")
+		data["ModelEval"] = c
+	else:
+		data["ModelEval"] = eval_r
+
+	t_additonal = st.text_area("Model Description (additional information)", "What additional information would be helpful?")
+	data["ModelAddtional"] = t_additonal
+
+	st.markdown("# Geological information (ADDITIONAL INFORMATION)")
+	st.markdown("GroMoPo doesn’t like to eat rocks but sometimes when times are hard and nobody gives him yummy"
+				" groundwater models to eat it comes back and tries to sift through the leftovers and crumbs.")
+
+	geo_r = st.radio("Dominant geologic material (that model focuses on)", ("Unconsolidated sediments",
+														  "Siliciclastic sedimentary (sandstones, shales)",
+														  "Carbonate (including karst)", "Crystalline", "Volcanic",
+														  "Model focuses on multiple geologic materials", "Unsure",
+														  "Other"))
+
+	if geo_r == "Other":
+		c = st.text_input("Enter other geo:", "")
+		data["ModelGeo"] = c
+	else:
+		data["ModelGeo"] = geo_r
+
+	geo_avial_r = st.radio("Is the data available?", ("Yes", "No", "Unsure"))
+	data["GeoAvail"] = geo_avial_r
+
+	st.markdown("# Feedback")
+	st.markdown("GroMoPo would love to know about your experience in its kitchen and hopes you enjoyed spending time cooking here!")
+
+	time_r = st.radio("How long did it take to fill out this form?", ("1 Minute", "1-5 Minutes", "5-10 Minutes",
+																	  "10-15 Minutes", "15 or more"))
+	data["TimeToFillOut"] = time_r
+
+	t_additonal = st.text_area("Did you encounter any troubles while filling the form? Or do you have anything else you would like to share with GroMoPo?","Complains or thoughts")
+	data["Additonal"] = t_additonal
+
 
 	# This will trigger a message to the user that the data has been saved or if data is malformed/missing
 	st.button("Submit", help="Submit the form", on_click=process_data, args=data)
