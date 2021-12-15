@@ -45,10 +45,12 @@ def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_
                 temp_df.to_crs(epsg=epsg, inplace=True)
             all_gdfs.append(temp_df)
     
-    all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs)) # one shp to plot, requires consistent attributes
+    all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs))
+    # one shp to plot, requires consistent attributes
     if all_gdf.crs is None:
         all_gdf.set_crs(epsg, allow_override=True, inplace=True)
-    if all_gdf.crs.to_epsg() != epsg: # convert crs, if needed
+    if all_gdf.crs.to_epsg() != epsg:
+        # convert crs, if needed
         all_gdf.to_crs(epsg=epsg, inplace=True)
     
     return all_gdf, os.path.join('..', shp_dir)

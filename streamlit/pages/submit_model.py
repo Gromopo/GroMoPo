@@ -22,18 +22,41 @@ def send_email_to(name, info):
 	pass
 
 
-def process_data(data):
+def check_requirements(df):
+	'''
+	This is a dict of requirement checks for each field.
+	They are automatically applied to all fields in the form.
+	We can assume that streamlit is only providing strings back in textfield
+	cases so e just have to check if they are not empty or malformed.
+
+	Return value is True if check is passed.
+	'''
+	reqs = {
+		"SubmittedName": (lambda x: not len(x) == 0 and not x.isspace()),
+		"SubmittedEmail": (lambda x: is_valid_mail(x)),
+	}
+	failed = []
+	for var, fun in reqs.items():
+		if not fun(df[var]):
+			failed.append(var)
+	return len(failed) == 0, failed
+
+
+def process_data(data: dict):
 	'''
 	Processes the input data for review, storage and email etc.
 	This is a callback from the submit button of the form
 	'''
-	print(data)
+	passed, loffields = check_requirements(data)
+	if not passed:
+		# TODO show in streamlit way
+		print("The following fields contain malformed data: {}".format(loffields))
 	save_data_to_storage(data)
 	send_email_to("name of reviewer", "info")
 	send_email_to("name of model dev", "info")
 
 
-def is_valid(email):
+def is_valid_mail(email):
 	if re.fullmatch(regex, email):
 		return True
 	else:
@@ -233,5 +256,5 @@ def app():
 
 
 	# This will trigger a message to the user that the data has been saved or if data is malformed/missing
-	st.button("Submit", help="Submit the form", on_click=process_data, args=data)
+	st.button("Submit", help="Submit the form", on_click=process_data, args=(data, ))
 	#TODO loop over all fields and tell the user which fields did not pass the consistency test
