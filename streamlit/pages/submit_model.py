@@ -6,8 +6,9 @@ from datetime import datetime
 from utils import helpers as hp
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
-regex = re.compile(r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
-
+regex_mail = re.compile(r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
+regex_doi = re.compile(r"/^10.\d{4,9}/[-._;()/:A-Z0-9]+$/i")  # thanks to https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 def save_data_to_storage(data):
 	'''
@@ -31,9 +32,39 @@ def check_requirements(df):
 
 	Return value is True if check is passed.
 	'''
+
+	def is_valid_string(x):
+		return not len(x) == 0 and not x.isspace()
+
+	def is_valid_mail(email):
+		if re.fullmatch(regex_mail, email):
+			return True
+		else:
+			return False
+
+	def is_valid_ref(x):
+		if re.fullmatch(regex_doi, x):
+			return True
+		elif re.fullmatch(regex_isbn, x):
+			return True
+		else:
+			return False
+
+	def is_valid_lat(x):
+		return True
+
+	def is_valid_lon(x):
+		return True
+
 	reqs = {
-		"SubmittedName": (lambda x: not len(x) == 0 and not x.isspace()),
+		"SubmittedName": (lambda x: is_valid_string(x)),
 		"SubmittedEmail": (lambda x: is_valid_mail(x)),
+		"ModelCountry": (lambda x: is_valid_string(x)),
+		"ModelAuthors": (lambda x: not len(x) == 0),  # assumes that author list can't be empty
+		"DevEmail": (lambda x: is_valid_mail(x)),
+		"Cite": (lambda x: is_valid_ref(x)),
+		"Lat": (lambda x: is_valid_lat(x)),
+		"Lon": (lambda x: is_valid_lon(x))
 	}
 	failed = []
 	for var, fun in reqs.items():
@@ -54,13 +85,6 @@ def process_data(data: dict):
 	save_data_to_storage(data)
 	send_email_to("name of reviewer", "info")
 	send_email_to("name of model dev", "info")
-
-
-def is_valid_mail(email):
-	if re.fullmatch(regex, email):
-		return True
-	else:
-		return False
 
 
 @st.cache
@@ -143,9 +167,8 @@ def app():
 						  "Not sure"))
 	data["ModelReview"] = b_review
 
-	t_cite = st.text_input("Citation(s) for report, data and/or code (DOI or ISBN)", "")
+	t_cite = st.text_input("Citation for report, data and/or code (DOI or ISBN). Only one main reference.", "")
 	data["Cite"] = t_cite
-	# TODO check if valid?
 
 	uploaded_files = st.file_uploader("Report, data or code files (Max. file-size: 5mb)", accept_multiple_files=True)
 	for uploaded_file in uploaded_files:
