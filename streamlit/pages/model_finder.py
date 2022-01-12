@@ -6,17 +6,16 @@ from folium.plugins import Fullscreen
 from streamlit_folium import folium_static
 import geopandas as gpd
 from matplotlib.pyplot import imread
-import os
+from pathlib import Path
 
 from utils import helpers as hp
-
 
 # This and all map related commands would be nice to cache, but not easy:
 # https://github.com/randyzwitch/streamlit-folium/issues/4
 def plot_map(gdf, img, popup=None):
-    
     rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)')
-    rgroup.add_child(folium.raster_layers.ImageOverlay(img,opacity=0.6,bounds=[[-90,-180],[90,180]],mercator_project=True))
+    rgroup.add_child(folium.raster_layers.ImageOverlay(img, opacity=0.6, bounds=[[-90, -180], [90, 180]],
+                                                       mercator_project=True))
     
     marker_cluster = plugins.MarkerCluster(control=False)
     
@@ -31,20 +30,25 @@ def plot_map(gdf, img, popup=None):
     return rgroup, marker_cluster, mlayer    
 
 
-@st.cache    
+@st.cache(suppress_st_warning=True)
 def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_america', 'south_america'],
-             epsg=3857, shp_dir=os.path.join('data', 'shapes')):
+             epsg=3857):
     all_gdfs = []
+    shp_dir = Path(dirname).parent.joinpath('data', 'shapes')
     for continent in continents:
-        shp_fname = os.path.join('..', shp_dir, '{}.shp'.format(continent))
+        shp_fname = shp_dir.joinpath('{}.shp'.format(continent))
         # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
         # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
-        if os.path.isfile(shp_fname):
+        if shp_fname.exists():
             temp_df = gpd.read_file(shp_fname)
             if temp_df.crs.to_epsg() != epsg:
                 temp_df.to_crs(epsg=epsg, inplace=True)
             all_gdfs.append(temp_df)
-    
+
+    if not all_gdfs:
+        # Somehow the list is empty and something went wrong
+        st.error("No model data to display from path {}".format(shp_dir))
+        return
     all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs))
     # one shp to plot, requires consistent attributes
     if all_gdf.crs is None:
@@ -53,14 +57,13 @@ def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_
         # convert crs, if needed
         all_gdf.to_crs(epsg=epsg, inplace=True)
     
-    return all_gdf, os.path.join('..', shp_dir)
+    return all_gdf, shp_dir
 
 
 @st.cache  
-def read_img(fname,skip_rows=60):
+def read_img(fname, skip_rows=60):
     img = imread(fname)
-    
-    cm_out = img[skip_rows:-skip_rows,:,:]
+    cm_out = img[skip_rows:-skip_rows, :, :]
     return cm_out
 
 
@@ -76,10 +79,10 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf, shp_dir = load_shp(".", epsg=epsg)
+all_gdf, shp_dir = load_shp(Path().absolute(), epsg=epsg)
 
 # Load water table base map
-rast_fname = os.path.join(os.path.dirname(shp_dir), 'degraaf_gw_dep.png')
+rast_fname = Path().absolute().parent.joinpath('data', 'degraaf_gw_dep.png')
 img = read_img(rast_fname)
 
 
