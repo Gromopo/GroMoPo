@@ -79,7 +79,7 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf, shp_dir = load_shp(Path().absolute(), epsg=epsg)
+# all_gdf, shp_dir = load_shp(Path().absolute(), epsg=epsg)
 
 # Load water table base map
 rast_fname = Path().absolute().parent.joinpath('data', 'degraaf_gw_dep.png')
@@ -92,15 +92,18 @@ def app():
              " a portal of regional and global numerical groundwater models."
              "The first priority is archiving existing models, but the repository could eventually archive"
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
+    
+    st.write("Path: {}".format(Path().absolute()))
+    
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                      name='ArcWorldImagery', attr='x').add_to(map)
-    rgroup, marker_cluster, mlayer = plot_map(all_gdf, img, popup=popup)
+    # rgroup, marker_cluster, mlayer = plot_map(all_gdf, img, popup=popup)
 
-    rgroup.add_to(map)
-    marker_cluster.add_to(map)
-    mlayer.add_to(map)
+    # rgroup.add_to(map)
+    # marker_cluster.add_to(map)
+    # mlayer.add_to(map)
 
     map.add_child(folium.LayerControl())
 
