@@ -7,6 +7,7 @@ from streamlit_folium import folium_static
 import geopandas as gpd
 from matplotlib.pyplot import imread
 from pathlib import Path
+import platform
 
 from utils import helpers as hp
 
@@ -68,6 +69,11 @@ def read_img(fname, skip_rows=60):
     return cm_out
 
 
+if platform.system() == 'Darwin':
+    main_path = Path(".")
+else:
+    main_path = Path("..")
+
 popup = GeoJsonPopup(
             fields=["id", "devdate", "name", "url", "custodian",
                     "spscale", "purpose", "archive", "coupling", "contribu_1"],
@@ -80,10 +86,10 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf, shp_dir = load_shp('.', epsg=epsg) #Path().absolute()
+all_gdf, shp_dir = load_shp(main_path, epsg=epsg) #Path().absolute()
 # print(Path().absolute())
 #Load water table base map
-rast_fname = str(Path('.').absolute().joinpath('data', 'degraaf_gw_dep.png'))
+rast_fname = str(main_path.absolute().joinpath('data', 'degraaf_gw_dep.png'))
 img = read_img(rast_fname)
 
 
@@ -94,7 +100,7 @@ def app():
              "The first priority is archiving existing models, but the repository could eventually archive"
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
     
-    st.write("Path: {}".format(rast_fname))
+    # st.write("Path: {}".format(rast_fname))
     
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)

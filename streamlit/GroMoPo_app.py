@@ -5,6 +5,7 @@ import streamlit as st
 from utils.multipage import MultiPage
 from pages import home, about, submit_model, model_finder
 from pathlib import Path
+import platform
 
 #st.set_page_config(layout="wide")
 
@@ -24,5 +25,10 @@ st.sidebar.info("This an open source project and you are very welcome to **contr
 st.sidebar.title("About")
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
-img_path = Path("streamlit").joinpath('pages','img','GroMoPo_logo_V1.png')
+if platform.system() == 'Darwin':
+    main_path = Path("streamlit")
+else:
+    main_path = Path(".")
+
+img_path = main_path.joinpath('pages','img','GroMoPo_logo_V1.png')
 st.sidebar.image(str(img_path), caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
