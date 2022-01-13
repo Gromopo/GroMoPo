@@ -4,6 +4,7 @@ import json
 import re
 from datetime import datetime,timezone
 from utils import helpers as hp
+from pathlib import Path
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
 regex_mail = re.compile(r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
@@ -97,11 +98,12 @@ def get_countries():
 
 
 def app():
-	markdown = hp.read_markdown_file("pages/view/submit_page.md")
+	main_path = Path("streamlit")
+	markdown = hp.read_markdown_file(str(main_path.joinpath('pages','view','submit_page.md')))
 	st.markdown(markdown, unsafe_allow_html=True)
-
+    
 	m_mark = "<font color='red' font-size='large'>*</font>"
-
+    
 	st.markdown("# MANDATORY QUESTIONS(1 - 2 minutes)", unsafe_allow_html=True)
 	st.markdown("In case GroMoPo really liked your recipe (or fell ill after eating it!)"
 				" it would like to keep your personal credentials so it can contact you in future,"
