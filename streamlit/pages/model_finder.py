@@ -79,11 +79,11 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf, shp_dir = load_shp("..", epsg=epsg) #Path().absolute()
+all_gdf, shp_dir = load_shp(str(Path().absolute()), epsg=epsg) #Path().absolute()
 # print(Path().absolute())
-# Load water table base map
-# rast_fname = Path("..").joinpath('data', 'degraaf_gw_dep.png')#Path().absolute().parent.joinpath('data', 'degraaf_gw_dep.png')
-# img = read_img(rast_fname)
+#Load water table base map
+rast_fname = str(Path().absolute().parent.joinpath('data', 'degraaf_gw_dep.png'))
+img = read_img(rast_fname)
 
 
 def app():
@@ -93,17 +93,17 @@ def app():
              "The first priority is archiving existing models, but the repository could eventually archive"
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
     
-    st.write("Path: {}".format(Path().absolute()))
+    st.write("Path: {}".format(rast_fname))
     
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                      name='ArcWorldImagery', attr='x').add_to(map)
-    # rgroup, marker_cluster, mlayer = plot_map(all_gdf, img, popup=popup)
+    rgroup, marker_cluster, mlayer = plot_map(all_gdf, img, popup=popup)
 
-    # rgroup.add_to(map)
-    # marker_cluster.add_to(map)
-    # mlayer.add_to(map)
+    rgroup.add_to(map)
+    marker_cluster.add_to(map)
+    mlayer.add_to(map)
 
     map.add_child(folium.LayerControl())
 
