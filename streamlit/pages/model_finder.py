@@ -34,7 +34,7 @@ def plot_map(gdf, img, popup=None):
 def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_america', 'south_america'],
              epsg=3857):
     all_gdfs = []
-    shp_dir = Path(dirname).parent.joinpath('data', 'shapes')
+    shp_dir = Path(dirname).joinpath('data', 'shapes')
     for continent in continents:
         shp_fname = shp_dir.joinpath('{}.shp'.format(continent))
         # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
@@ -79,10 +79,10 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf, shp_dir = load_shp(str(Path('.').absolute()), epsg=epsg) #Path().absolute()
+all_gdf, shp_dir = load_shp(str(Path('..').absolute()), epsg=epsg) #Path().absolute()
 # print(Path().absolute())
 #Load water table base map
-rast_fname = str(Path('.').absolute().parent.joinpath('data', 'degraaf_gw_dep.png'))
+rast_fname = str(Path('..').absolute().joinpath('data', 'degraaf_gw_dep.png'))
 img = read_img(rast_fname)
 
 
