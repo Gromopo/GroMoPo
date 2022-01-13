@@ -53,9 +53,9 @@ def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_
     # one shp to plot, requires consistent attributes
     if all_gdf.crs is None:
         all_gdf.set_crs(epsg, allow_override=True, inplace=True)
-    if all_gdf.crs.to_epsg() != epsg:
-        # convert crs, if needed
-        all_gdf.to_crs(epsg=epsg, inplace=True)
+    # if all_gdf.crs.to_epsg() != epsg:
+    #     # convert crs, if needed
+    #     all_gdf.to_crs(epsg=epsg, inplace=True)
     
     return all_gdf, shp_dir
 
@@ -79,7 +79,7 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-# all_gdf, shp_dir = load_shp(Path().absolute(), epsg=epsg)
+all_gdf, shp_dir = load_shp(Path().absolute(), epsg=epsg)
 
 # Load water table base map
 rast_fname = Path().absolute().parent.joinpath('data', 'degraaf_gw_dep.png')
@@ -99,11 +99,11 @@ def app():
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                      name='ArcWorldImagery', attr='x').add_to(map)
-    # rgroup, marker_cluster, mlayer = plot_map(all_gdf, img, popup=popup)
+    rgroup, marker_cluster, mlayer = plot_map(all_gdf, img, popup=popup)
 
-    # rgroup.add_to(map)
-    # marker_cluster.add_to(map)
-    # mlayer.add_to(map)
+    rgroup.add_to(map)
+    marker_cluster.add_to(map)
+    mlayer.add_to(map)
 
     map.add_child(folium.LayerControl())
 
