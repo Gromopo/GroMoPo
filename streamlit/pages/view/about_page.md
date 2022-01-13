@@ -16,6 +16,8 @@ Sharing groundwater model data, knowledge and insights more easily through a por
 - Mark Cuthbert
 - Kevin Befus
 - Marc Bierkens
+- Robert Reinecke
+- Daniel Zamrsky
 
 ## Collaborating organisations (we hope)
 
