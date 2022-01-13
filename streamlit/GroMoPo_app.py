@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Our app libs - possibly move to own folder
-from utils import helpers
+# from utils import helpers
 from utils.multipage import MultiPage
 from pages import home, about, submit_model, model_finder
 from pathlib import Path
@@ -11,7 +11,7 @@ from pathlib import Path
 st.sidebar.title('Navigation')
 
 app = MultiPage()
-app.add_page("Home", home.app)
+app.add_page("Home", home.app) # Name, Function
 app.add_page("Model Finder", model_finder.app)
 app.add_page("Submit Model", submit_model.app)
 app.add_page("About", about.app)
