@@ -4,6 +4,7 @@ import streamlit as st
 from utils import helpers
 from utils.multipage import MultiPage
 from pages import home, about, submit_model, model_finder
+from pathlib import Path
 
 #st.set_page_config(layout="wide")
 
@@ -22,4 +23,6 @@ st.sidebar.info("This an open source project and you are very welcome to **contr
                 " questions, resources and groundwater models to the source code")
 st.sidebar.title("About")
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
-st.sidebar.image('pages/img/GroMoPo_logo_V1.png', caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+
+img_path = Path("streamlit").joinpath('pages','img','GroMoPo_logo_V1.png')
+st.sidebar.image(str(img_path), caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
