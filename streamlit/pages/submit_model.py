@@ -89,12 +89,14 @@ def process_data(data: dict):
 	send_email_to("name of model dev", "info")
 
 
+if platform.system() == 'Windows':
+    main_path = Path(".")
+else:
+    main_path = Path("streamlit")
+
 @st.cache
 def get_countries():
-    if platform.system() == 'Darwin':
-        main_path = Path("streamlit")
-    else:
-        main_path = Path(".")
+
     with open(main_path.joinpath('utils','countries.json'), 'r') as cs:
         country_data = cs.read()
     countries = json.loads(country_data)["countries"]
@@ -103,10 +105,7 @@ def get_countries():
 
 
 def app():
-	if platform.system() == 'Windows':
-		main_path = Path(".")
-	else:
-		main_path = Path("streamlit")
+
 	markdown = hp.read_markdown_file(str(main_path.joinpath('pages','view','submit_page.md')))
 	st.markdown(markdown, unsafe_allow_html=True)
     
