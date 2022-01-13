@@ -79,7 +79,7 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf, shp_dir = load_shp(Path().absolute(), epsg=epsg)
+all_gdf, shp_dir = load_shp('{}'.format(Path().absolute()), epsg=epsg)
 
 # Load water table base map
 rast_fname = Path().absolute().parent.joinpath('data', 'degraaf_gw_dep.png')
