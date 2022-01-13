@@ -48,7 +48,8 @@ def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_
     if not all_gdfs:
         # Somehow the list is empty and something went wrong
         st.error("No model data to display from path {}".format(shp_dir))
-        return
+        st.error("Path: {}".format(Path().absolute()))
+        return None,None
     all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs))
     # one shp to plot, requires consistent attributes
     if all_gdf.crs is None:
