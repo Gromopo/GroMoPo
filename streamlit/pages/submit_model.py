@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit_tags as stt
 import json
 import re
-from datetime import datetime
+from datetime import datetime,timezone
 from utils import helpers as hp
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
@@ -125,7 +125,9 @@ def app():
 	b_dev = st.radio("Are you the original model developer?", ("Yes", "No"))
 	data["OriginalDev"] = b_dev
 
-	n_year = st.slider("Model development/publication YEAR *", min_value=datetime(1970, 1, 1, 9, 30), max_value=datetime(2030, 1, 1, 9, 30), value=datetime(2020, 1, 1, 9, 30), format="MM/DD/YY")
+	n_year = st.slider("Model development/publication YEAR *", min_value=datetime(1960, 1, 2,tzinfo=timezone.utc),
+                    max_value=datetime(2050, 1, 1, 9, 30,tzinfo=timezone.utc),
+                    value=datetime(2020, 1, 2,tzinfo=timezone.utc), format="YYYY")
 	data["ModelYear"] = n_year
 
 	t_m_avail = st.selectbox("Model data availability *", ("Report/paper only", "Output publicly available",
