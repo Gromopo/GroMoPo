@@ -69,10 +69,10 @@ def read_img(fname, skip_rows=60):
     return cm_out
 
 
-if platform.system() == 'Darwin':
-    main_path = Path(".")
-else:
+if platform.system() == 'Windows':
     main_path = Path("..")
+else:
+    main_path = Path(".")
 
 popup = GeoJsonPopup(
             fields=["id", "devdate", "name", "url", "custodian",
