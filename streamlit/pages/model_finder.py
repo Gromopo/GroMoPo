@@ -13,37 +13,60 @@ from utils import helpers as hp
 
 # This and all map related commands would be nice to cache, but not easy:
 # https://github.com/randyzwitch/streamlit-folium/issues/4
-def plot_map(gdf, img, popup=None):
-    rgroup = folium.FeatureGroup(name='Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)')
-    rgroup.add_child(folium.raster_layers.ImageOverlay(img, opacity=0.6, bounds=[[-90, -180], [90, 180]],
-                                                       mercator_project=True))
+def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
+    
+    
+    rgroups = []
+    for img in rasters:
+    
+        rgroup = folium.FeatureGroup(name=rasters[img]['name'],overlay=True)
+        rgroup.add_child(folium.raster_layers.ImageOverlay(rasters[img]['data'], opacity=0.6,
+                                                           bounds=[[-90, -180], [90, 180]],
+                                                           mercator_project=True))
+        rgroups.append(rgroup)
     
     marker_cluster = plugins.MarkerCluster(control=False)
-    
-    for _, r in gdf.to_crs(epsg='4326').iterrows():
+    mlayers = []
+    # Domains with detailed spatial extents
+    for _, r in shp_df.to_crs(epsg=to_epsg).iterrows():
         folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
 
-    mlayer=folium.GeoJson(gdf, name='Groundwater models', popup=popup, style_function = lambda feature: {
-                'fillColor': 'grey',
-                'weight': 1,
-                'fillOpacity': 0.7,
+    mlayer=folium.GeoJson(shp_df, name='Groundwater models', popup=popup,
+                          style_function = lambda feature: {
+                            'fillColor': 'grey',
+                            'color':feature['properties']['color'],
+                            'weight': 1,
+                            'fillOpacity': 0.7,
     })
-    return rgroup, marker_cluster, mlayer    
+    
+    mlayers.append(mlayer)
+        
+    
+    
+    return rgroups, marker_cluster, mlayer   
 
 
 @st.cache(suppress_st_warning=True)
-def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_america', 'south_america'],
-             epsg=3857):
+def load_shp(dirname, shpnames=['wdomain','woutdomain'],
+             epsg=3857,color_dict={'wdomain':'blue',
+                                   'woutdomain':'red',
+                                   'other':'green'}):
     all_gdfs = []
     shp_dir = Path(dirname).joinpath('data', 'shapes')
-    for continent in continents:
-        shp_fname = shp_dir.joinpath('{}.shp'.format(continent))
+    for shpname in shpnames:
+        shp_fname = shp_dir.joinpath('{}.shp'.format(shpname))
         # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
         # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
         if shp_fname.exists():
             temp_df = gpd.read_file(shp_fname)
             if temp_df.crs.to_epsg() != epsg:
                 temp_df.to_crs(epsg=epsg, inplace=True)
+            
+            if shpname in color_dict:
+                temp_df['color'] = color_dict[shpname]
+            else:
+                temp_df['color'] = color_dict['other']
+            
             all_gdfs.append(temp_df)
 
     if not all_gdfs:
@@ -60,7 +83,6 @@ def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_
     #     all_gdf.to_crs(epsg=epsg, inplace=True)
     
     return all_gdf, shp_dir
-
 
 @st.cache  
 def read_img(fname, skip_rows=60):
@@ -91,6 +113,21 @@ all_gdf, shp_dir = load_shp(main_path, epsg=epsg) #Path().absolute()
 #Load water table base map
 rast_fname = str(main_path.absolute().joinpath('data', 'degraaf_gw_dep.png'))
 img = read_img(rast_fname)
+rasters_dict = {'degraaf_dep':{'name':'Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)',
+                               'data':img}}
+
+# pt_fname = str(main_path.absolute().joinpath('data', 'sprint_11_2021_plot.csv'))
+# ptsq_df = csv2shp(pt_fname,crs=epsg)
+
+# Can merge, but better to keep separate
+# all_gdf = gpd.GeoDataFrame(gpd.pd.concat([all_gdf,ptsq_df],ignore_index=True))
+# all_gdf.set_crs(epsg, allow_override=True, inplace=True)
+
+# Separate datasets for models with and without domain shps
+
+# shp_dict = {'wdomains':all_gdf,
+#             'woutdomains':ptsq_df,
+#             }
 
 
 def app():
@@ -102,19 +139,44 @@ def app():
     
     # st.write("Path: {}".format(rast_fname))
     
-    map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
-    folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
+    m = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
+    folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(m)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                     name='ArcWorldImagery', attr='x').add_to(map)
-    rgroup, marker_cluster, mlayer = plot_map(all_gdf, img, popup=popup)
+                     name='ArcWorldImagery', attr='x').add_to(m)
+    rgroups, marker_cluster, mlayer = plot_map(all_gdf,
+                                              rasters=rasters_dict,
+                                              popup=popup)
+    # Add raster data to map
+    for rgroup in rgroups:
+        rgroup.add_to(m)
+        
+    # Add clusters
+    # marker_cluster.add_to(m)
+    
+    modelgroup1 = folium.FeatureGroup(name="Model domains").add_to(m)
+    modelgroup1.add_child(marker_cluster)
+    modelgroup1.add_child(mlayer)
+    
+    # for mg,mlayer in zip([modelgroup1,modelgroup2],mlayers):
+    #     mg.add_child(mlayer).add_to(m)
+    # # Add shps to map - looping didn't work for some reason?
+    # modelgroup.add_child(mlayers[0])
+    
+    # modelgroup2 = folium.FeatureGroup(name="Approximate domains")
+    # modelgroup2.add_child(mlayers[1])    
+    
+    # for ishp in mlayers:
+    #     ishp.add_to(map)
+    
+    # modelgroup.add_to(map)
+    # modelgroup1.add_to(m)
+    # modelgroup2.add_to(m)
+    
+    # folium.LayerControl().add_to(m)
+    m.add_child(modelgroup1)
+    # m.add_child(modelgroup2)
+    m.add_child(folium.LayerControl())
+    Fullscreen().add_to(m)
 
-    rgroup.add_to(map)
-    marker_cluster.add_to(map)
-    mlayer.add_to(map)
-
-    map.add_child(folium.LayerControl())
-
-    Fullscreen().add_to(map)
-
-    folium_static(map, height=700, width=1400)
+    folium_static(m, height=700, width=1400)
     
