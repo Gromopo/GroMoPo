@@ -7,6 +7,7 @@ from streamlit_folium import folium_static
 import geopandas as gpd
 from matplotlib.pyplot import imread
 from pathlib import Path
+import platform
 
 from utils import helpers as hp
 
@@ -34,7 +35,7 @@ def plot_map(gdf, img, popup=None):
 def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_america', 'south_america'],
              epsg=3857):
     all_gdfs = []
-    shp_dir = Path(dirname).parent.joinpath('data', 'shapes')
+    shp_dir = Path(dirname).joinpath('data', 'shapes')
     for continent in continents:
         shp_fname = shp_dir.joinpath('{}.shp'.format(continent))
         # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
@@ -48,14 +49,15 @@ def load_shp(dirname, continents=['africa', 'oceania', 'asia', 'europe', 'north_
     if not all_gdfs:
         # Somehow the list is empty and something went wrong
         st.error("No model data to display from path {}".format(shp_dir))
-        return
+        st.error("Path: {}".format(Path().absolute()))
+        return None,None
     all_gdf = gpd.GeoDataFrame(gpd.pd.concat(all_gdfs))
     # one shp to plot, requires consistent attributes
     if all_gdf.crs is None:
         all_gdf.set_crs(epsg, allow_override=True, inplace=True)
-    if all_gdf.crs.to_epsg() != epsg:
-        # convert crs, if needed
-        all_gdf.to_crs(epsg=epsg, inplace=True)
+    # if all_gdf.crs.to_epsg() != epsg:
+    #     # convert crs, if needed
+    #     all_gdf.to_crs(epsg=epsg, inplace=True)
     
     return all_gdf, shp_dir
 
@@ -66,6 +68,11 @@ def read_img(fname, skip_rows=60):
     cm_out = img[skip_rows:-skip_rows, :, :]
     return cm_out
 
+
+if platform.system() == 'Windows':
+    main_path = Path("..")
+else:
+    main_path = Path(".")
 
 popup = GeoJsonPopup(
             fields=["id", "devdate", "name", "url", "custodian",
@@ -79,10 +86,10 @@ popup = GeoJsonPopup(
 
 epsg = 3857
 # Load shapefiles of models
-all_gdf, shp_dir = load_shp(Path().absolute(), epsg=epsg)
-
-# Load water table base map
-rast_fname = Path().absolute().parent.joinpath('data', 'degraaf_gw_dep.png')
+all_gdf, shp_dir = load_shp(main_path, epsg=epsg) #Path().absolute()
+# print(Path().absolute())
+#Load water table base map
+rast_fname = str(main_path.absolute().joinpath('data', 'degraaf_gw_dep.png'))
 img = read_img(rast_fname)
 
 
@@ -92,6 +99,9 @@ def app():
              " a portal of regional and global numerical groundwater models."
              "The first priority is archiving existing models, but the repository could eventually archive"
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
+    
+    # st.write("Path: {}".format(rast_fname))
+    
     map = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(map)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',

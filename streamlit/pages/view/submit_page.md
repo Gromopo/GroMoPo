@@ -1,3 +1,7 @@
+# This form is current under development. Data is not saved.
+This form is for testing purposes only. If you would like submit a model please use the current google-docs:
+https://docs.google.com/forms/d/e/1FAIpQLSeOgQtYLJALacZQfwF2Nb5RMWOqg_ODVyyEXoStBKHekfg66w/viewform
+
 # Share a model
 
 WELCOME NEW USERS!

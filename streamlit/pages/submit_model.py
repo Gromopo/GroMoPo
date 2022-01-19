@@ -2,8 +2,10 @@ import streamlit as st
 import streamlit_tags as stt
 import json
 import re
-from datetime import datetime
+from datetime import datetime,timezone
 from utils import helpers as hp
+from pathlib import Path
+import platform
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
 regex_mail = re.compile(r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
@@ -87,21 +89,28 @@ def process_data(data: dict):
 	send_email_to("name of model dev", "info")
 
 
+if platform.system() == 'Windows':
+    main_path = Path(".")
+else:
+    main_path = Path("streamlit")
+
 @st.cache
 def get_countries():
-	with open('utils/countries.json', 'r') as cs:
-		country_data = cs.read()
-	countries = json.loads(country_data)["countries"]
-	l_countries = [d['name'] for d in countries]
-	return l_countries
+
+    with open(main_path.joinpath('utils','countries.json'), 'r') as cs:
+        country_data = cs.read()
+    countries = json.loads(country_data)["countries"]
+    l_countries = [d['name'] for d in countries]
+    return l_countries
 
 
 def app():
-	markdown = hp.read_markdown_file("pages/view/submit_page.md")
+
+	markdown = hp.read_markdown_file(str(main_path.joinpath('pages','view','submit_page.md')))
 	st.markdown(markdown, unsafe_allow_html=True)
-
+    
 	m_mark = "<font color='red' font-size='large'>*</font>"
-
+    
 	st.markdown("# MANDATORY QUESTIONS(1 - 2 minutes)", unsafe_allow_html=True)
 	st.markdown("In case GroMoPo really liked your recipe (or fell ill after eating it!)"
 				" it would like to keep your personal credentials so it can contact you in future,"
@@ -125,7 +134,9 @@ def app():
 	b_dev = st.radio("Are you the original model developer?", ("Yes", "No"))
 	data["OriginalDev"] = b_dev
 
-	n_year = st.slider("Model development/publication YEAR *", min_value=datetime(1970, 1, 1, 9, 30), max_value=datetime(2030, 1, 1, 9, 30), value=datetime(2020, 1, 1, 9, 30), format="MM/DD/YY")
+	n_year = st.slider("Model development/publication YEAR *", min_value=datetime(1960, 1, 2,tzinfo=timezone.utc),
+                    max_value=datetime(2050, 1, 1, 9, 30,tzinfo=timezone.utc),
+                    value=datetime(2020, 1, 2,tzinfo=timezone.utc), format="YYYY")
 	data["ModelYear"] = n_year
 
 	t_m_avail = st.selectbox("Model data availability *", ("Report/paper only", "Output publicly available",
