@@ -7,5 +7,5 @@ Main release (main branch) Streamlit app running live [here](https://share.strea
 Bleeding edge (development branch) version Streamlit app running live [here](https://share.streamlit.io/gromopo/gromopo/develop/streamlit/GroMoPo_app.py)
 
 ## Contribute to the code
-If you would like to contribute to this project check out our [guidelines](CONTRIBUTING.md)
+If you would like to contribute to this project, check out our [guidelines](CONTRIBUTING.md)
 

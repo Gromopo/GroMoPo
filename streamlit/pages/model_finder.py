@@ -115,19 +115,6 @@ img = read_img(rast_fname)
 rasters_dict = {'degraaf_dep':{'name':'Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)',
                                'data':img}}
 
-# pt_fname = str(main_path.absolute().joinpath('data', 'sprint_11_2021_plot.csv'))
-# ptsq_df = csv2shp(pt_fname,crs=epsg)
-
-# Can merge, but better to keep separate
-# all_gdf = gpd.GeoDataFrame(gpd.pd.concat([all_gdf,ptsq_df],ignore_index=True))
-# all_gdf.set_crs(epsg, allow_override=True, inplace=True)
-
-# Separate datasets for models with and without domain shps
-
-# shp_dict = {'wdomains':all_gdf,
-#             'woutdomains':ptsq_df,
-#             }
-
 
 def app():
     st.title('GroMoPo — Groundwater Model Portal')
@@ -150,30 +137,11 @@ def app():
         rgroup.add_to(m)
         
     # Add clusters
-    # marker_cluster.add_to(m)
-    
     modelgroup1 = folium.FeatureGroup(name="Model domains").add_to(m)
     modelgroup1.add_child(marker_cluster)
     modelgroup1.add_child(mlayer)
     
-    # for mg,mlayer in zip([modelgroup1,modelgroup2],mlayers):
-    #     mg.add_child(mlayer).add_to(m)
-    # # Add shps to map - looping didn't work for some reason?
-    # modelgroup.add_child(mlayers[0])
-    
-    # modelgroup2 = folium.FeatureGroup(name="Approximate domains")
-    # modelgroup2.add_child(mlayers[1])    
-    
-    # for ishp in mlayers:
-    #     ishp.add_to(map)
-    
-    # modelgroup.add_to(map)
-    # modelgroup1.add_to(m)
-    # modelgroup2.add_to(m)
-    
-    # folium.LayerControl().add_to(m)
     m.add_child(modelgroup1)
-    # m.add_child(modelgroup2)
     m.add_child(folium.LayerControl())
     Fullscreen().add_to(m)
 

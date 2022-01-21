@@ -25,6 +25,8 @@ st.sidebar.info("This an open source project and you are very welcome to **contr
 st.sidebar.title("About")
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
+# FIXME this should work independant of the system we are on. Make sure this works on all platforms including streamlit.io
+
 if platform.system() == 'Windows':
     main_path = Path(".")
 else:
