@@ -26,6 +26,8 @@ def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
         rgroups.append(rgroup)
     
     marker_cluster = plugins.MarkerCluster(control=False)
+    mlayers = []
+    
     # Domains with detailed spatial extents
     for _, r in shp_df.to_crs(epsg=to_epsg).iterrows():
         folium.Marker(location=[r.geometry.centroid.y, r.geometry.centroid.x]).add_to(marker_cluster)
