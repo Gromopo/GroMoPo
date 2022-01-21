@@ -7,12 +7,12 @@ from pages import home, about, submit_model, model_finder
 from pathlib import Path
 import platform
 
-#st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 
 st.sidebar.title('Navigation')
 
 app = MultiPage()
-app.add_page("Home", home.app) # Name, Function
+app.add_page("Home", home.app)  # Name, Function
 app.add_page("Model Finder", model_finder.app)
 app.add_page("Submit Model", submit_model.app)
 app.add_page("About", about.app)
@@ -25,10 +25,12 @@ st.sidebar.info("This an open source project and you are very welcome to **contr
 st.sidebar.title("About")
 st.sidebar.info("This app is maintained and argued on by the GroMoPo mob")
 
+# we could also check for platform.processor() which should be empty
 if platform.system() == 'Windows':
     main_path = Path(".")
 else:
     main_path = Path("streamlit")
 
-img_path = main_path.joinpath('pages','img','GroMoPo_logo_V1.png')
-st.sidebar.image(str(img_path), caption=None, width=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+img_path = main_path.joinpath('pages', 'img', 'GroMoPo_logo_V1.png')
+st.sidebar.image(str(img_path), caption=None, width=None, use_column_width=None, clamp=False, channels='RGB',
+                 output_format='auto')
