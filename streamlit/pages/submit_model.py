@@ -1,15 +1,14 @@
-import time
-
 import streamlit as st
 import streamlit_tags as stt
 import streamlit.components.v1 as components
-import json
+
 import re
 from datetime import datetime, timezone
 from utils import helpers as hp
 from pathlib import Path
 import platform
 from hsclient import HydroShare
+from hsmodels.schemas.fields import Creator
 import json
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
@@ -63,7 +62,7 @@ def check_requirements(df):
         "ModelCountry": (lambda x: is_valid_string(x)),
         "ModelAuthors": (lambda x: not len(x) == 0),  # assumes that author list can't be empty
         "DevEmail": (lambda x: is_valid_mail(x)),
-        #        "Cite": (lambda x: is_valid_ref(x)),
+        "Cite": (lambda x: is_valid_ref(x)),
         "Lat": (lambda x: is_valid_lat(x)),
         "Lon": (lambda x: is_valid_lon(x))
     }
@@ -87,17 +86,44 @@ def push_to_hydroshare(data):
     f = open(main_path.joinpath('config.json'))
     config = json.load(f)
     hs = HydroShare(username=config["hydroshare"]["username"], password=config["hydroshare"]["password"])
-    return
+
     new_resource = hs.create()
     resIdentifier = new_resource.resource_id
     new_resource.metadata.title = data["SubmittedName"]
-    # Contributer
-    # TODO add them as non-exitend hydroshare user -> possibly check if user exists
-    # "SubmittedName"
-    # "SubmittedEmail"
-    new_resource.metadata.additional_metadata = {"IsVerified": "False",
-                                                 "OriginalDev": data["OriginalDev"],
-                                                 "ModelYear": str(data["ModelYear"])}
+    # email=data["SubmittedEmail"]
+    new_resource.metadata.creators.append(Creator(name=data["SubmittedName"]))
+
+    for file in data["files"]:
+        new_resource.file_upload(file.getvalue())
+
+    # We could unpack this automatically but this provides an easy possibility to rename fields
+    # Also all fields in the metadata need to be strings
+    new_resource.metadata.additional_metadata = {
+        "IsVerified": "False",
+        "OriginalDev": data["OriginalDev"],
+        "ModelYear": str(data["ModelYear"]),
+        "DataAvail": data["DataAvail"],
+        "SameCountry": data["SameCountry"],
+        "ModelCountry": data["ModelCountry"],
+        "ModelAuthors": data["ModelAuthors"],
+        "DevEmail": data["DevEmail"],
+        "ModelReview": data["ModelReview"],
+        "Cite": data["Cite"],
+        "ModelScale": data["ModelScale"],
+        "Lat": data["lat"],
+        "Lon": data["lon"],
+        "Layers": data["Layers"],
+        "Depth": data["Depth"],
+        "ModelTime": data["ModelTime"],
+        "ModelCode": data["ModelCode"],
+        "ModelPurpose": data["ModelPurpose"],
+        "ModelEval": data["ModelEval"],
+        "ModelAddtional": data["ModelAddtional"],
+        "ModelGeo": data["ModelGeo"],
+        "GeoAvail": data["GeoAvail"],
+        "TimeToFillOut": data["TimeToFillOut"],
+        "Additonal": data["Additonal"]
+    }
     new_resource.save()
 
 
@@ -106,13 +132,18 @@ def process_data(data: dict):
     Processes the input data for review, storage and email etc.
     This is a callback from the submit button of the form
     '''
+
+    # TODO add dummy test code that fills out fields
+
     passed, loffields = check_requirements(data)
 
     if not passed:
         st.warning("The following fields contain malformed data: {}".format(loffields))
         return
-    with st.spinner('Wait for it...'):
+
+    with st.spinner('Data is being processed ...'):
         push_to_hydroshare(data)
+
     st.success('Your data was successfully submitted')
 
     send_email_to("name of reviewer", "info")
@@ -217,13 +248,9 @@ def app():
         t_cite = st.text_input("Citation for report, data and/or code (DOI or ISBN). Only one main reference.", "")
         data["Cite"] = t_cite
 
-        uploaded_files = st.file_uploader("Report, data or code files (Max. file-size: 5mb)",
-                                          accept_multiple_files=True)
-        for uploaded_file in uploaded_files:
-            bytes_data = uploaded_file.read()
-            st.write("filename:", uploaded_file.name)
-            st.write(bytes_data)
-        # TODO store data somewhere
+        uploaded_files = st.file_uploader("Report, data or code files (Max. file-size: 5mb, shapefiles only)",
+                                          accept_multiple_files=True, type="shp")
+        data["files"] = uploaded_files
 
         scale_r = st.radio("Model Scale", ("Global", "Continental", "other-> select with a slider"))
 
