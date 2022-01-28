@@ -19,6 +19,7 @@ app.add_page("About", about.app)
 
 app.run()
 
+# TODO replace this with proper Navigation bar on top
 st.sidebar.title("Contribute")
 st.sidebar.info("This an open source project and you are very welcome to **contribute** your awesome comments,"
                 " questions, resources and groundwater models to the source code")
