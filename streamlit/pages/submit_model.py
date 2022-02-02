@@ -10,7 +10,6 @@ import platform
 from hsclient import HydroShare
 from hsmodels.schemas.fields import Creator
 import json
-import os
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
 regex_mail = re.compile(
@@ -25,10 +24,16 @@ def send_email_to(name, info):
 
 
 def save_uploadedfile(uploadedfile):
-    path = main_path.absolute().joinpath("tempDir", uploadedfile.name)
-    with open(path, "wb") as f:
+    path = main_path.absolute().joinpath("tempDir")
+    try:
+        path.mkdir(parents=True)
+    except OSError:
+        pass
+
+    file_p = path.joinpath(uploadedfile.name)
+    with open(file_p, "wb") as f:
         f.write(uploadedfile.getbuffer())
-    return path
+    return file_p
 
 
 def check_requirements(df):
@@ -113,16 +118,16 @@ def push_to_hydroshare(data):
         "DataAvail": data["DataAvail"],
         "SameCountry": data["SameCountry"],
         "ModelCountry": data["ModelCountry"],
-        "ModelAuthors": data["ModelAuthors"],
+        "ModelAuthors": ' '.join(data["ModelAuthors"]),
         "DevEmail": data["DevEmail"],
         "ModelReview": data["ModelReview"],
         "Cite": data["Cite"],
         "ModelScale": data["ModelScale"],
-        "Lat": data["lat"],
-        "Lon": data["lon"],
+        "Lat": data["Lat"],
+        "Lon": data["Lon"],
         "Layers": data["Layers"],
         "Depth": data["Depth"],
-        "ModelTime": data["ModelTime"],
+        "ModelTime": str(data["ModelTime"]),
         "ModelCode": data["ModelCode"],
         "ModelPurpose": data["ModelPurpose"],
         "ModelEval": data["ModelEval"],
@@ -147,9 +152,12 @@ def process_data(data: dict):
         st.warning("The following fields contain malformed data: {}".format(loffields))
         return
 
+    # FIXME ST spinner seems to be budy at the moment possibly this needs to be executed in a different task threat
     with st.spinner('Data is being processed ...'):
         push_to_hydroshare(data)
 
+    # bring user to the top of the page
+    st.session_state.counter += 1
     st.success('Your data was successfully submitted')
 
     send_email_to("name of reviewer", "info")
@@ -197,11 +205,11 @@ def app():
         # collect all answers in this dict -> we can easily use this as json to sent it via mail
         data = {}
 
-        t_name = st.text_input("Your name (which may be different than model developer)", "")
+        t_name = st.text_input("Your name (which may be different than model developer)", "Guy McGuy")
         # Text field to fill in the name – constrain to string datatype only.
         data["SubmittedName"] = t_name
 
-        t_email = st.text_input("Your E-mail *", "")
+        t_email = st.text_input("Your E-mail *", "mail@mail.com")
         data["SubmittedEmail"] = t_email
 
         b_dev = st.radio("Are you the original model developer?", ("Yes", "No"))
@@ -240,7 +248,7 @@ def app():
                     "Now it is curious about some general information such as – how many portions will it eat?"
                     " How old are the ingredients?")
 
-        t_email_dev = st.text_input("Model developer primary email *", "")
+        t_email_dev = st.text_input("Model developer primary email *", "mail@mail.com")
         data["DevEmail"] = t_email_dev
 
         b_review = st.radio("Model review",
@@ -277,8 +285,8 @@ def app():
                     " ideally center of domain. This can be easily achieved through e.g. google maps where you can right"
                     " click on a point in the map and then click on the coordinates it automatically shows."
                     " Then you can simply copy those in the fields below.")
-        t_lat = st.text_input("Lat", "")
-        t_lon = st.text_input("Lon", "")
+        t_lat = st.text_input("Lat", "36.069")
+        t_lon = st.text_input("Lon", "-94.172")
         data["Lat"] = t_lat
         data["Lon"] = t_lon
 
