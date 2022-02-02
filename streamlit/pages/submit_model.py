@@ -10,6 +10,7 @@ import platform
 from hsclient import HydroShare
 from hsmodels.schemas.fields import Creator
 import json
+import os
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
 regex_mail = re.compile(
@@ -21,6 +22,13 @@ regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 def send_email_to(name, info):
     pass
+
+
+def save_uploadedfile(uploadedfile):
+    path = main_path.absolute().joinpath("tempDir", uploadedfile.name)
+    with open(path, "wb") as f:
+        f.write(uploadedfile.getbuffer())
+    return path
 
 
 def check_requirements(df):
@@ -62,7 +70,7 @@ def check_requirements(df):
         "ModelCountry": (lambda x: is_valid_string(x)),
         "ModelAuthors": (lambda x: not len(x) == 0),  # assumes that author list can't be empty
         "DevEmail": (lambda x: is_valid_mail(x)),
-        "Cite": (lambda x: is_valid_ref(x)),
+        # "Cite": (lambda x: is_valid_ref(x)),
         "Lat": (lambda x: is_valid_lat(x)),
         "Lon": (lambda x: is_valid_lon(x))
     }
@@ -94,7 +102,7 @@ def push_to_hydroshare(data):
     new_resource.metadata.creators.append(Creator(name=data["SubmittedName"]))
 
     for file in data["files"]:
-        new_resource.file_upload(file.getvalue())
+        new_resource.file_upload(file)
 
     # We could unpack this automatically but this provides an easy possibility to rename fields
     # Also all fields in the metadata need to be strings
@@ -132,8 +140,6 @@ def process_data(data: dict):
     Processes the input data for review, storage and email etc.
     This is a callback from the submit button of the form
     '''
-
-    # TODO add dummy test code that fills out fields
 
     passed, loffields = check_requirements(data)
 
@@ -250,7 +256,11 @@ def app():
 
         uploaded_files = st.file_uploader("Report, data or code files (Max. file-size: 5mb, shapefiles only)",
                                           accept_multiple_files=True, type="shp")
-        data["files"] = uploaded_files
+        files = []
+        for u_file in uploaded_files:
+            files.append(save_uploadedfile(u_file))
+
+        data["files"] = files
 
         scale_r = st.radio("Model Scale", ("Global", "Continental", "other-> select with a slider"))
 
