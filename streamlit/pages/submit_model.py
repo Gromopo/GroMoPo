@@ -75,7 +75,7 @@ def check_requirements(df):
         "ModelCountry": (lambda x: is_valid_string(x)),
         "ModelAuthors": (lambda x: not len(x) == 0),  # assumes that author list can't be empty
         "DevEmail": (lambda x: is_valid_mail(x)),
-        # "Cite": (lambda x: is_valid_ref(x)),
+        # "Cite": (lambda x: is_valid_ref(x)), # FIXME currently this regex is not working
         "Lat": (lambda x: is_valid_lat(x)),
         "Lon": (lambda x: is_valid_lon(x))
     }
