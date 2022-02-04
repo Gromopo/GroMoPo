@@ -24,16 +24,15 @@ def send_email_to(name, info):
 
 
 def save_uploadedfile(uploadedfile):
-    path = main_path.absolute().joinpath("tempDir")
+    path = main_path.joinpath("tempDir")
     try:
         path.mkdir(parents=True)
     except OSError:
         pass
-
     file_p = path.joinpath(uploadedfile.name)
     with open(file_p, "wb") as f:
         f.write(uploadedfile.getbuffer())
-    return file_p
+    return str(file_p)
 
 
 def check_requirements(df):
@@ -98,6 +97,7 @@ def push_to_hydroshare(data):
     # TODO the configuration should be read in in a central place and also contain other settings
     f = open(main_path.joinpath('config.json'))
     config = json.load(f)
+    # TODO can we avoid login in again every time?
     hs = HydroShare(username=config["hydroshare"]["username"], password=config["hydroshare"]["password"])
 
     new_resource = hs.create()
@@ -105,6 +105,8 @@ def push_to_hydroshare(data):
     new_resource.metadata.title = data["SubmittedName"]
     # email=data["SubmittedEmail"]
     new_resource.metadata.creators.append(Creator(name=data["SubmittedName"]))
+
+    new_resource.file_upload(data["files"][0])
 
     for file in data["files"]:
         p = Path(file)
@@ -269,12 +271,13 @@ def app():
         data["Cite"] = t_cite
 
         uploaded_files = st.file_uploader("Report, data or code files (Max. file-size: 5mb, shapefiles only)",
-                                          accept_multiple_files=True, type="shp")
+                                          accept_multiple_files=True, type="shp", key="upload")
         files = []
-        for u_file in uploaded_files:
-            files.append(save_uploadedfile(u_file))
-
+        if uploaded_files:
+            for f in uploaded_files:
+                files.append(save_uploadedfile(f))
         data["files"] = files
+        # FIXME this is always empty!!!
 
         scale_r = st.radio("Model Scale", ("Global", "Continental", "other-> select with a slider"))
 
