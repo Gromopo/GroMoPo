@@ -107,7 +107,11 @@ def push_to_hydroshare(data):
     new_resource.metadata.creators.append(Creator(name=data["SubmittedName"]))
 
     for file in data["files"]:
-        new_resource.file_upload(file)
+        p = Path(file)
+        if p.is_file():
+            new_resource.file_upload(file)
+        else:
+            st.error("Something went wrong caching the uploaded file: {}".format(p))
 
     # We could unpack this automatically but this provides an easy possibility to rename fields
     # Also all fields in the metadata need to be strings
