@@ -1,7 +1,10 @@
 from datetime import datetime
 import pytest
-import streamlit as st
 from pages import submit_model
+from hsclient import HydroShare
+import json
+from pathlib import Path
+import tempfile
 
 
 @pytest.fixture
@@ -36,6 +39,18 @@ def submitted_data():
     }
 
 
+@pytest.fixture
+def login_hydroshare():
+    main_path = Path("..")
+    f = open(main_path.joinpath('config.json'))
+    config = json.load(f)
+    hs = HydroShare(username=config["hydroshare"]["username"], password=config["hydroshare"]["password"])
+
+    new_resource = hs.create()
+    resIdentifier = new_resource.resource_id
+    return new_resource, hs
+
+
 def test_check_requirements_success(submitted_data):
     s, l = submit_model.check_requirements(submitted_data)
     assert l == []
@@ -57,13 +72,18 @@ def test_check_requirements_fail(submitted_data):
     assert l == ["SubmittedName", "SubmittedEmail", "ModelCountry", "ModelAuthors", "DevEmail"]
 
 
-def test_process_data(fruit_bowl):
-    # submit_model.process_data(*fruit_bowl)
+def test_process_data(submitted_data):
+    # submit_model.process_data(submitted_data)
     pass
 
 
-def test_push_to_hydroshare():
-    pass
+def test_push_to_hydroshare_file_upload(login_hydroshare):
+    res, hy = login_hydroshare
+    res.file_upload("assets/north_america.shp")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(res.file_download(res.files()[0], save_path=tmp))
+        assert path.is_file() == True
+    res.delete()
 
 
 def test_save_uploadedfile():
