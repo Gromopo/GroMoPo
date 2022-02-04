@@ -157,6 +157,8 @@ def process_data(data: dict):
         push_to_hydroshare(data)
 
     # bring user to the top of the page
+    if "counter" not in st.session_state:
+        st.session_state.counter = 1
     st.session_state.counter += 1
     st.success('Your data was successfully submitted')
 
