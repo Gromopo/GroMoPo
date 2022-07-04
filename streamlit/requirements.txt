@@ -3,3 +3,4 @@ geopandas
 matplotlib
 streamlit-folium
 streamlit-tags
+streamlit-option-menu

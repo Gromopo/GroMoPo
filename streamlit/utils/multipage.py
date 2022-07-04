@@ -34,14 +34,7 @@ class MultiPage:
         
         self.pages.update({title:func})
         
-    def run(self):
-        # Drodown to select the page to run  
-        page = st.sidebar.selectbox(
-            'Page selection', 
-            self.pages.keys(), 
-            # format_func=lambda page: page["title"],
-        )
-
+    def run(self, menu):
         # run the app function 
         # page["function"]()
-        self.pages[page]()
+        self.pages[menu]()
