@@ -7,7 +7,7 @@ from pages import home, about, submit_model, model_finder
 from pathlib import Path
 import platform
 
-#st.set_page_config(layout="wide")
+st.set_page_config(layout="wide")
 
 st.sidebar.title('Navigation')
 
