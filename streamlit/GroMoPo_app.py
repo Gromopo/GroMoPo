@@ -9,7 +9,7 @@ import platform
 
 from streamlit_option_menu import option_menu
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 
 app = MultiPage()
 #app.add_page("Home", home.app) # Name, Function
