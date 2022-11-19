@@ -132,7 +132,7 @@ rasters_dict = {'degraaf_dep': {'name': 'Water table depth [de Graaf] (Yellow = 
 def app():
     st.title('GroMoPo — Groundwater Model Portal')
     st.write("Sharing groundwater model data, knowledge and insights more easily through"
-             " a portal of regional and global numerical groundwater models."
+             " a portal of regional and global numerical groundwater models. "
              "The first priority is archiving existing models, but the repository could eventually archive"
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
 
@@ -162,7 +162,7 @@ def app():
     # modelgroup.add_child(mlayers[0])
 
     # modelgroup2 = folium.FeatureGroup(name="Approximate domains")
-    # modelgroup2.add_child(mlayers[1])    
+    # modelgroup2.add_child(mlayers[1])
 
     # for ishp in mlayers:
     #     ishp.add_to(map)
