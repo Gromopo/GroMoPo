@@ -2,14 +2,11 @@ import streamlit as st
 import streamlit_tags as stt
 import streamlit.components.v1 as components
 
-import re
+import re, json, itertools, requests, platform
 from datetime import datetime, timezone
-from utils import helpers as hp
 from pathlib import Path
-import platform
 from hsclient import HydroShare
-from hsmodels.schemas.fields import Creator, PointCoverage
-import json
+from hsmodels.schemas.fields import Creator, BoxCoverage
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
 regex_mail = re.compile(
@@ -79,8 +76,10 @@ def check_requirements(df):
         "ModelAuthors": (lambda x: not len(x) == 0),  # assumes that author list can't be empty
         "DevEmail": (lambda x: is_valid_mail(x)),
         # "Cite": (lambda x: is_valid_ref(x)), # FIXME currently this regex is not working
-        "Lat": (lambda x: is_valid_lat(x)),
-        "Lon": (lambda x: is_valid_lon(x))
+        "North": (lambda x: is_valid_lat(x)),
+        "South": (lambda x: is_valid_lat(x)),
+        "East": (lambda x: is_valid_lon(x)),
+        "West": (lambda x: is_valid_lon(x))
     }
     failed = []
     for var, fun in reqs.items():
@@ -88,16 +87,29 @@ def check_requirements(df):
             failed.append(var)
     return len(failed) == 0, failed
 
-def getTrueValue(term):
+def getTrueValue(term, method, data):
 
     # get original value
-    val = st.session_state[term]
-
-    # see if it's set to "Unknown or ""Other"
-    if val in ("Unknown", "Other") and st.session_state[term+"2"] != "":
-        val = st.session_state[term+"2"]
-
+    if method == "webform":
+        val = st.session_state[term]
+        
+        # see if it's set to "Unknown or ""Other"
+        if val in ("Unknown", "Other") and st.session_state[term+"2"] != "":
+            val = st.session_state[term+"2"]
+            
+    else:
+        val = data[term]
+        
     return val
+
+
+def prettyList(term):
+
+    # get origial list
+    a_list = st.session_state[term]
+    strList = ", ".join(a_list)
+
+    return strList
 
 def remove_items(test_list, item):
 
@@ -106,7 +118,7 @@ def remove_items(test_list, item):
 
     return res
 
-def push_to_hydroshare(data):
+def push_to_hydroshare(data, method="webform"):
     '''
     Authenticate with the hydroshare services to store data.
     Limitations
@@ -117,100 +129,172 @@ def push_to_hydroshare(data):
     '''
 
     # set dictionary equal to session state object
-    st_data = st.session_state
+    if method == "webform":
+        st_data = st.session_state
+    elif method == "csv":
+        st_data = data
 
     # TODO the configuration should be read in in a central place and also contain other settings
-    f = open(main_path.joinpath('config.json'))
-    config = json.load(f)
-    # TODO can we avoid login in again every time?
-    hs = HydroShare(st_data["t_username"], st_data["t_pw"])
-
-    new_resource = hs.create()
-    resIdentifier = new_resource.resource_id
-    new_resource.metadata.title = st_data["ModelName"]
-    new_resource.metadata.abstract = st_data["Abstract"]
-
-    # email=data["SubmittedEmail"]
-    new_resource.metadata.creators.append(Creator(name=st_data["SubmittedName"]))
-
-    # KJK-adding error trapping in case no file was uploaded
-    uploaded_file = st_data["files"]
     try:
-        hsapi_path = f'{new_resource._hsapi_path}/files/' # This is the url where the post is happening
-
-        new_resource._hs_session.upload_file(hsapi_path, files={'file': uploaded_file}, status_code=201)
+        f = open(main_path.joinpath('config.json'))
+        config = json.load(f)
     except:
         pass
-
-    # # KJK- add spatial coverage as a point
-    if st_data["Lat"] != "" and st_data["Lon"] != "":
-        new_resource.metadata.spatial_coverage = PointCoverage(name=st_data["ModelCountry"],
-                                                  north=float(st_data["Lat"]),
-                                                  east=float(st_data["Lon"]),
-                                                  projection='WGS 84 EPSG:4326',
-                                                  type='point',
-                                                  units='Decimal degrees')
-
-    # add keywords as subjects
-    # add authors as keywords
-    subjects = st_data["subjects"]
-    for a_name in st.session_state["ModelAuthors"]:
-        if a_name not in ("T. Test", "Guy McGuy", ""):
-            subjects.append(a_name)
-
-    new_resource.metadata.subjects = subjects
-
-    # We could unpack this automatically but this provides an easy possibility to rename fields
-    # Also all fields in the metadata need to be
-
-    # logic to get various variables
-    # model scale
-    m_scale = getTrueValue("ModelScale")
-    # model code
-    m_code = getTrueValue("ModelCode")
-    # model purpose
-    m_purpose = getTrueValue("ModelPurpose")
-    # model integration
-    m_integration = getTrueValue("ModelIntegration")
-    # model evaluation
-    m_eval = getTrueValue("ModelEval")
-    # geology
-    m_geo = getTrueValue("ModelGeo")
-
-    # additional information
-    m_add_info = ""
-    if st_data["ModelAdditional"] != "What additional information about this model should be included?":
-        m_add_info = st_data["ModelAdditional"]
-
-    new_resource.metadata.additional_metadata = {
-        #"IsVerified": "False",
-        "Original Developer": st_data["OriginalDev"],
-        "Model Year": str(st_data["ModelYear"]),
-        "Data Available": st_data["DataAvail"],
-        #"SameCountry": st_data["SameCountry"],
-        "Model Country": st_data["ModelCountry"],
-        "Model Authors": ' '.join(st_data["ModelAuthors"]),
-        "Developer Email": st_data["DevEmail"],
-        #"Model Review": st_data["ModelReview"],
-        "Cite": st_data["Cite"],
-        "Scale": m_scale,
-        "Layers": st_data["Layers"],
-        "Depth": st_data["Depth"],
-        "Dominant Geology": m_geo,
-        "Geologic Data Availability": st_data["GeoAvail"],
-        "Model Time": str(st_data["ModelTime"]),
-        "Code": m_code,
-        "Purpose": m_purpose,
-        "Integration or Coupling": m_integration,
-        "Evaluation or Callibration": m_eval,
-        "Additional Information": m_add_info
-    }
-
-    # save new resource in HydroShare
-    new_resource.save()
-
-    # set resource to being public
-    new_resource.set_sharing_status(public=True)
+    
+    # TODO can we avoid login in again every time?
+    try:
+    # if 1==1:
+        hs = HydroShare(st_data["t_username"], st_data["t_pw"])
+    
+        new_resource = hs.create()
+        resIdentifier = new_resource.resource_id
+        new_resource.metadata.title = st_data["ModelName"].strip()
+        new_resource.metadata.abstract = st_data["Abstract"]
+    
+        # email=data["SubmittedEmail"]
+        new_resource.metadata.creators.append(Creator(name=st_data["SubmittedName"]))
+    
+        # KJK-adding error trapping in case no file was uploaded
+        uploaded_file = st_data["files"]
+        chkUpload = False
+        tryBox = False
+        
+        # attempt to upload the shapefile
+        
+        if uploaded_file != '' and method == "webform":
+            try:
+                # This is the url where the post is happening
+                hsapi_path = f'{new_resource._hsapi_path}/files/' 
+                new_resource._hs_session.upload_file(hsapi_path, 
+                                  files={'file': uploaded_file}, status_code=201)
+                
+                chkUpload = True
+            except:
+                print("file upload failed")
+                tryBox = True
+            
+        else:
+            tryBox = True
+            
+        if tryBox:
+            # add spatial coverage as a box if no shapefile
+            if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
+                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["LocDesc"].replace(";", ","),
+                                                                      northlimit=st_data["North"],
+                                                                      eastlimit=st_data["East"],
+                                                                      southlimit=st_data["South"],
+                                                                      westlimit=st_data["West"],
+                                                                      projection='WGS 84 EPSG:4326',
+                                                                      type='box',
+                                                                      units='Decimal degrees')
+        
+        # add keywords as subjects
+        # add authors as keywords
+        subjects = st_data["subjects"]
+        
+        # for a_name in st.session_state["ModelAuthors"]:
+        for a_name in st_data["ModelAuthors"]:
+            if a_name not in ("T. Test", "Guy McGuy", ""):
+                subjects.append(a_name)
+                
+        # get all model codes
+        m_codes, subjects = combine_multi_and_tags(st_data["ModelCode"], 
+                                                    st_data["ModelCode2"], subjects)
+        
+        
+        # get all model purposes
+        m_purpose, subjects = combine_multi_and_tags(st_data["ModelPurpose"], 
+                                                          st_data["ModelPurpose2"], subjects)
+        
+        # get all integrations
+        m_integ, subjects = combine_multi_and_tags(st_data["ModelIntegration"], 
+                                                          st_data["ModelIntegration2"], subjects)
+                
+        # get all evaluations
+        m_eval, subjects = combine_multi_and_tags(st_data["ModelEval"], 
+                                                  st_data["ModelEval2"], subjects)
+    
+        for subj in ["None of the above"]:
+            if subj in subjects:
+                subjects.remove(subj)
+    
+        new_resource.metadata.subjects = subjects
+        
+        # save new resource in HydroShare
+        new_resource.save()
+    
+        # see if a file was uploaded
+        if chkUpload and method == "webform":
+            # # unzip the file
+            file = new_resource.files()[0]
+            upload_name = file.path
+            new_resource.file_unzip(path=upload_name, overwrite=True, ingest_metadata=False)
+                
+            # set sharing to public 
+            new_resource.set_sharing_status(public=True)
+            
+        # add item to GroMoPo app
+        # hsapi_path_access = f'{new_resource._hsapi_path}/access/'
+        # group_id = 212
+        # group_info = {"privilege": 2, "group_id": group_id}
+        
+        # new_resource._hs_session.put(hsapi_path_access, data=group_info, status_code=201)
+    
+        # We could unpack this automatically but this provides an easy possibility to rename fields
+        # Also all fields in the metadata need to be
+    
+        # logic to get various variables
+        # model scale
+        m_scale = getTrueValue("ModelScale", method, st_data)
+        # geology
+        m_geo = getTrueValue("ModelGeo", method, st_data)    
+    
+        # additional information
+        m_add_info = ""
+        if st_data["ModelAdditional"] != "What additional information about this model should be included?":
+            m_add_info = st_data["ModelAdditional"]
+            
+        # depth
+        if st_data["Depth"] != '': 
+            depth = str(st_data["Depth"]) + " meters"
+        else:
+            depth = ''
+    
+        new_resource.metadata.additional_metadata = {
+            "IsVerified": "False",
+            "Original Developer": st_data["OriginalDev"],
+            "Model Year": str(st_data["ModelYear"]),
+            "Data Available": st_data["DataAvail"],
+            #"SameCountry": st_data["SameCountry"],
+            "Model Country": st_data["ModelCountry"],
+            "Model Authors": ', '.join(st_data["ModelAuthors"]),
+            "Developer Email": st_data["DevEmail"],
+            #"Model Review": st_data["ModelReview"],
+            "DOI Citation": st_data["Cite"],
+            "Scale": m_scale,
+            "Layers": st_data["Layers"],
+            "Depth": depth,
+            "Dominant Geology": m_geo,
+            "Geologic Data Availability": st_data["GeoAvail"],
+            "Model Time": str(st_data["ModelTime"]),
+            "Model Code": ', '.join(m_codes),
+            "Purpose": ', '.join(m_purpose),
+            "Integration or Coupling": ', '.join(m_integ),
+            "Evaluation or Callibration": ', '.join(m_eval),
+            "Additional Information": m_add_info
+        }
+        
+        # add terms as needed
+        for term in ["SameCountry", "ModelReview"]:
+            if term in st_data:
+                new_resource.metadata.additional_metadata[term] = st_data[term]
+            
+        # save additional metadata in HydroShare
+        new_resource.save()
+        
+    except:
+        print("Error with data upload for record " + st_data["ID"])
+    
 
 
 def process_data(data: dict):
@@ -237,6 +321,25 @@ def process_data(data: dict):
 
     send_email_to("name of reviewer", "info")
     send_email_to("name of model dev", "info")
+    
+def writeToText(textFile, stuff):
+    from os.path import exists
+    mode = "w"
+    if exists(textFile):
+        mode = "a"
+    FILE = open(textFile,mode)
+    FILE.write(stuff)
+    FILE.close()
+
+
+def combine_multi_and_tags(group1, group2, subjects):
+    
+    list_codes = list(itertools.chain.from_iterable([group1, group2]))
+    for a_code in list_codes:
+        if a_code not in subjects:
+            subjects.append(a_code)
+            
+    return list_codes, subjects
 
 
 # Apparently processor should be empty on streamlit.io
@@ -256,6 +359,7 @@ def get_countries():
 
 
 def app():
+    from utils import helpers as hp
     if "counter" not in st.session_state:
         st.session_state.counter = 1
     components.html(
@@ -304,14 +408,6 @@ def app():
         data["un"] = st.session_state["t_username"]
         data["pw"] = st.session_state["t_pw"]
 
-        # 1.3 IS SUBMITTER SAME AS DEVELOPER?
-        b_dev = st.radio(label="Are you the original model developer?", options=("Yes", "No"), key="OriginalDev")
-        data["OriginalDev"] = b_dev
-
-        # if original developer, add name as subject
-        if b_dev == "Yes":
-            subjects.append(st.session_state["SubmittedName"])
-
         # 1.4 PUBLICATION TITLE
         t_model_name = st.text_input(label="Publication Title *", value="My Interesting Model", key="ModelName")
         data["ModelName"] = t_model_name
@@ -321,16 +417,30 @@ def app():
         data["Abstract"] = t_abstract
 
         # 1.5 MODEL YEAR
+        yearVal = datetime.now().date().year
         n_year = st.slider(label="Year of model development/publication *", min_value=1960,
                            max_value=2050,
-                           value=2022, key="ModelYear")
+                           value=yearVal, key="ModelYear")
         data["ModelYear"] = n_year
         subjects.append(str(n_year)[0:4])
 
         # 1.6 DOI/CITATION
-        t_cite = st.text_input(label="Citation for report, data and/or code (DOI or ISBN). Only one main reference.",
+        t_cite = st.text_input(label="DOI (Digital Object Identifier) for model.",
                             value="", key="Cite")
         data["Cite"] = t_cite
+        
+        # 1.8 MODEL AVAILABILITY
+        t_m_avail = st.radio(label="Model data availability *", options=("Report/paper only", "Output publicly available",
+                                                               "Input and output publicly available", "Unsure"), key="DataAvail")
+        data["DataAvail"] = t_m_avail
+        
+        # 1.3 IS SUBMITTER SAME AS DEVELOPER?
+        b_dev = st.radio(label="Are you the original model developer?", options=("Yes", "No"), key="OriginalDev")
+        data["OriginalDev"] = b_dev
+
+        # if original developer, add name as subject
+        if b_dev == "Yes":
+            subjects.append(st.session_state["SubmittedName"])
 
         # 1.7 MODEL DEVELOPERS
         l_names = stt.st_tags(
@@ -343,41 +453,65 @@ def app():
             key='ModelAuthors')
 
         data["ModelAuthors"] = l_names
-
-        # 1.8 MODEL AVAILABILITY
-        t_m_avail = st.radio(label="Model data availability *", options=("Report/paper only", "Output publicly available",
-                                                               "Input and output publicly available", "Unsure"), key="DataAvail")
-        data["DataAvail"] = t_m_avail
-
-        # 1.9 MODEL INSTITUTE COUNTRY vs. MODEL LOCATION
-        b_country = st.radio(label="Is the model developer's institute located in the same country as the model location? *",
-                             options=("Yes", "No", "Unclear"), key="SameCountry")
-        data["SameCountry"] = b_country
+        
+        # 2.1 MODEL DEVELOPER EMAIL
+        t_email_dev = st.text_input(label="Model developer primary email *", value="mail@mail.com", key="DevEmail")
+        data["DevEmail"] = t_email_dev
 
         # 1.10 COUNTRY OF INSTITUTE OR DEVELOPER
         l_countries = get_countries()
         t_country = st.selectbox(label="Country of primary model developer or institution *",
                                 options=l_countries, key="ModelCountry")
         data["ModelCountry"] = t_country
+        
+        # 1.9 MODEL INSTITUTE COUNTRY vs. MODEL LOCATION
+        b_country = st.radio(label="Is the model developer's institute located in the same country as the model location? *",
+                             options=("Yes", "No", "Unclear"), key="SameCountry")
+        data["SameCountry"] = b_country
+        
+        st.markdown("# Model File Attachment")
+        st.markdown("Please upload files associated with the model as a zip file.")
+        
+        # 2.6.1 UPLOAD FILE
+        uploaded_files = st.file_uploader(label="Zipped files, max size 5 MB",
+                                          accept_multiple_files=False, type="zip", key="files")
+            
+        
+        # 2.6 MODEL EXTENT
+        st.markdown("# Model Extent and Scale")
+        st.markdown("Please enter bounding box coordinates for model extent.")
+        st.markdown("The bounding box coordinates can be easily achieved through e.g. google maps where you can right"
+                    " click on a point in the map and then click on the coordinates it automatically shows."
+                    " Then you can simply copy those in the fields below.")
+        
+        loc_desc = st.text_input(label="Location description", value="", key="LocDesc")
+        data["LocDesc"] = loc_desc
 
-        st.markdown("# Model general information (ADDITIONAL INFORMATION)")
-        st.markdown("GroMoPo can already see the ingredients in the shopping bags! "
-                    "Now it is curious about some general information such as – how many portions will it eat?"
-                    " How old are the ingredients?")
+        # 2.6.2 CENTROID
+        st.markdown("Top left coordinate")
+        # t_north = st.number_input(label="North Latitude/Y Value (ex. 37.023)", 
+        #                     min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
+        # t_west = st.number_input(label="West Longitude/X Value (ex. -103.025)", 
+        #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
+        t_north = st.text_input(label="North Latitude/Y Value (ex. 37.023)", 
+                            value="0.0", key="North")
+        t_west = st.text_input(label="West Longitude/X Value (ex. -103.025)", 
+                            value="0.0", key="West")
 
-        # 2.1 MODEL DEVELOPER EMAIL
-        t_email_dev = st.text_input(label="Model developer primary email *", value="mail@mail.com", key="DevEmail")
-        data["DevEmail"] = t_email_dev
-
-
-        # b_review = st.radio("Model review",
-        #                     ("Double-blind peer review journal",
-        #                      "Peer review journal",
-        #                      "Peer reviewed report (includes internal review at governmental agencies like USGS)",
-        #                      "Not peer reviewed",
-        #                      "Not sure"))
-        # data["ModelReview"] = b_review
-
+        st.markdown("Bottom right coordinate")
+        # t_south = st.number_input(label="South Latitude/Y Value (ex. 33.764)", 
+        #                     min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
+        # t_east = st.number_input(label="East Longitude/X Value (ex. -94.544)", 
+        #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
+        t_south = st.text_input(label="South Latitude/Y Value (ex. 33.764)", 
+                            value="0.0", key="South")
+        t_east = st.text_input(label="East Longitude/X Value (ex. -94.544)", 
+                            value="0.0", key="East")
+        data["North"] = t_north
+        data["East"] = t_east
+        data["South"] = t_south
+        data["West"] = t_west
+        
         # 2.5 MODEL SCALE
         scale_r = st.radio(label="Model Scale", options=("Unknown", "Global", "Continental", "National", ">100 000 km²",
                                 "10 001 - 100 000 km²", "1 001 - 10 000 km²", "101 - 1 000 km²",
@@ -390,108 +524,8 @@ def app():
         else:
             data["ModelScale"] = st.session_state.ModelScale
         subjects.append(data["ModelScale"])
-
-        # 2.6 MODEL EXTENT
-        st.markdown("Model extent (upload zipfile; optional, don't spend time looking for it if not easily available),"
-                    " if model shapefile unavailable please specify the model location as Lat | Lon (e.g., 36.069 ; -94.172),"
-                    " ideally center of domain. This can be easily achieved through e.g. google maps where you can right"
-                    " click on a point in the map and then click on the coordinates it automatically shows."
-                    " Then you can simply copy those in the fields below.")
-
-        # 2.6.1 UPLOAD FILE
-        uploaded_files = st.file_uploader(label="Zipped shapefile of extent, max file size 5 MB",
-                                          accept_multiple_files=False, type="zip", key="files")
-
-        # 2.6.2 CENTROID
-        t_lat = st.text_input(label="Latitude * ex. 36.069", value="", key="Lat")
-        t_lon = st.text_input(label="Longitude * ex. -94.172", value="", key="Lon")
-        data["Lat"] = t_lat
-        data["Lon"] = t_lon
-
-        # 2.7 NUMBER OF LAYERS
-        n_layers = st.radio(label="Model Layers",
-                            options=("Unknown", "1 layer", "2-5 layers", "6-10 layers", "11-15 layers", "16-20 layers",
-                            ">20 layers"), key="Layers")
-        data["Layers"] = n_layers
-
-        # 2.8 MAXIMUM DEPTH
-        n_depth = st.number_input(label="Maximum depth of model below ground surface (m)", min_value=1,
-                            max_value=10000, key="Depth")
-        data["Depth"] = n_depth
-
-        # 2.9 TIME RANGE
-        t_time_range = st.text_input(label="Enter the time range of the model or SS for steady state", key="ModelTime")
-
-        st.markdown("# Model technical information (ADDITIONAL INFORMATION)")
-        st.markdown(
-            "GroMoPo can already smell the ingredients being cooked in the pot and knows that now is the time to add some spices."
-            " Tease his taste buds by answering the questions below!")
-
-        # 3.1 MODEL CODE
-        code_r = st.radio(label="Model code", options=("Unknown", "MODFLOW", "SEAWAT", "GSFLOW", "Feflow", "Parflow", "Hydrogeosphere",
-                                          "GMS", "HYDRUS", "VS2D", "Bespoke", "Other"), key="ModelCode")
-
-        code_r_2 = st.text_input(label="If Other, enter model framework name:", value="", key="ModelCode2")
-
-        if st.session_state.ModelCode == "Other" and st.session_state.ModelCode2 != "":
-            data["ModelCode"] = st.session_state.ModelCode2
-        else:
-            data["ModelCode"] = st.session_state.ModelCode
-
-        subjects.append(data["ModelCode"])
-
-        # 3.2 MODEL PURPOSE
-        purpose_r = st.radio(label="Model Purpose", options=("Unknown", "Groundwater resources", "Groundwater contamination",
-                                                "Scientific investigation (not related to applied problem)",
-                                                "Subsidence", "Climate change", "Salt water intrusion",
-                                                "Streamflow depletion", "Agricultural growth", "Decision support",
-                                                "Other"), key="ModelPurpose")
-
-        purpose_r_2 = st.text_input(label="If Other, enter model purpose:", value="", key="ModelPurpose2")
-
-        if st.session_state.ModelPurpose == "Other" and st.session_state.ModelPurpose2 != "":
-            data["ModelPurpose"] = st.session_state.ModelPurpose
-        else:
-            data["ModelPurpose"] = st.session_state.ModelPurpose
-        subjects.append(data["ModelPurpose"])
-
-        # 3.3 INTEGRATION
-        integration_r = st.radio(label="Integration or coupling with other types of models", options=("Unknown", "Surface water",
-                                "Water use", "Land surface model", "Water management", "Ecosystem health",
-                                "Agent-based model", "Economic", "Solute transport", "Geochemical",
-                                "Other"), key="ModelIntegration")
-
-        integration_r_2 = st.text_input(label="If Other, enter model integration:", value="", key="ModelIntegration2")
-
-        if st.session_state.ModelIntegration == "Other" and st.session_state.ModelIntegration2 != "":
-            data["ModelIntegration"] = st.session_state.ModelIntegration2
-        else:
-            data["ModelIntegration"] = st.session_state.ModelIntegration
-        subjects.append(data["ModelIntegration"])
-
-        # 3.4 EVALUATION
-        eval_r = st.radio(label="Model evaluation or calibration",
-                          options=("Unknown", "Static water levels", "Dynamic water levels", "Baseflow",
-                           "Groundwater chemistry", "Contaminant concentrations",
-                           "Other"), key="ModelEval")
-
-        eval_r_2 = st.text_input(label="If Other, enter model evaluation:", value="", key="ModelEval2")
-
-        if st.session_state.ModelEval == "Other" and st.session_state.ModelEval2 != "":
-            data["ModelEval"] = st.session_state.ModelEval2
-        else:
-            data["ModelEval"] = st.session_state.ModelEval
-        subjects.append(data["ModelEval"])
-
-        # 3.5 ADDITONAL INFO
-        t_additonal = st.text_area(label="Additional Model Information",
-                                   value="What additional information about this model should be included?",
-                                   key="ModelAdditional")
-        data["ModelAdditional"] = t_additonal
-
-        st.markdown("# Geological information (ADDITIONAL INFORMATION)")
-        st.markdown("GroMoPo doesn’t like to eat rocks but sometimes when times are hard and nobody gives him yummy"
-                    " groundwater models to eat it comes back and tries to sift through the leftovers and crumbs.")
+        
+        st.markdown("# Geological Information")
 
         # 4.1 GEOLOGIC FOCUS
         geo_r = st.radio(label="Dominant geologic material (that model focuses on)", options=("Unknown","Unconsolidated sediments",
@@ -510,12 +544,89 @@ def app():
         subjects.append(data["ModelGeo"])
 
         # 4.2 GEOLOGIC DATA AVAILABILITY
-        geo_avial_r = st.radio(label="Is the data available?", options=("Unknown", "Yes", "No"), key="GeoAvail")
+        geo_avial_r = st.radio(label="Is the geologic data available?", options=("Unknown", "Yes", "No"), key="GeoAvail")
         data["GeoAvail"] = geo_avial_r
+        
+
+        st.markdown("# Model General Information")
+
+        # 2.7 NUMBER OF LAYERS
+        n_layers = st.number_input(label="Number of (model) layers in model domain", 
+                                   min_value=0, max_value=500, step=1, key="Layers")
+        data["Layers"] = n_layers
+
+        # 2.8 MAXIMUM DEPTH
+        n_depth = st.number_input(label="Maximum depth of model below ground surface in meters", 
+                          min_value=1, max_value=10000, step=10, key="Depth")
+        data["Depth"] = n_depth
+
+        # 2.9 TIME RANGE
+        t_time_range = st.text_input(label="Time range of the model or SS for steady state", key="ModelTime")
+        data["ModelTime"] = t_time_range
+
+        st.markdown("# Model Technical Information")
+
+        # 3.1 MODEL CODE
+        code_r = st.multiselect(label="Model code(s). Select all applicable.", options=("MODFLOW", "SEAWAT", "GSFLOW", "Feflow", "Parflow", "Hydrogeosphere",
+                                          "GMS", "HYDRUS", "VS2D", "Bespoke"), key="ModelCode")
+
+        code_r_2 = stt.st_tags(
+            label='Enter additional model code(s)',
+            text='Press enter to add more',
+            value=[],
+            suggestions=[],
+            maxtags=6,
+            key='ModelCode2')
+
+        # 3.2 MODEL PURPOSE
+        purpose_r = st.multiselect(label="Model Purpose(s). Select all applicable.", options=("Groundwater resources", "Groundwater contamination",
+                                                "Scientific investigation (not related to applied problem)",
+                                                "Subsidence", "Climate change", "Salt water intrusion",
+                                                "Streamflow depletion", "Agricultural growth", "Decision support"),
+                                                key="ModelPurpose")
+
+        purpose_r_2 = stt.st_tags(
+            label='Enter additional model purpose(s)',
+            text='Press enter to add more',
+            value=[],
+            suggestions=[],
+            maxtags=6,
+            key='ModelPurpose2')
+
+        # 3.3 INTEGRATION
+        integration_r = st.multiselect(label="Integration or coupling with other types of models. Select all applicable.", options=("Surface water",
+                                "Water use", "Land surface model", "Water management", "Ecosystem health",
+                                "Agent-based model", "Economic", "Solute transport", "Geochemical"), key="ModelIntegration")
+
+        integration_r_2 = stt.st_tags(
+            label='Enter additional model integration(s)',
+            text='Press enter to add more',
+            value=[],
+            suggestions=[],
+            maxtags=6,
+            key='ModelIntegration2')
+
+        # 3.4 EVALUATION
+        eval_r = st.multiselect(label="Model evaluation or calibration. Select all applicable.",
+                          options=("Static water levels", "Dynamic water levels", "Baseflow",
+                           "Groundwater chemistry", "Contaminant concentrations"), key="ModelEval")
+
+        eval_r_2 = stt.st_tags(
+            label='Enter additional model evaluation(s)',
+            text='Press enter to add more',
+            value=[],
+            suggestions=[],
+            maxtags=6,
+            key='ModelEval2')
+
+        # 3.5 ADDITONAL INFO
+        t_additonal = st.text_area(label="Additional Model Information",
+                                   value="What additional information about this model should be included?",
+                                   key="ModelAdditional")
+        data["ModelAdditional"] = t_additonal
+
 
         st.markdown("# Feedback")
-        st.markdown(
-            "GroMoPo would love to know about your experience in its kitchen and hopes you enjoyed spending time cooking here!")
 
         # 5.1 FORM FILL TIME
         time_r = st.radio(label="How long did it take to fill out this form?", options=("1 Minute", "1-5 Minutes",
