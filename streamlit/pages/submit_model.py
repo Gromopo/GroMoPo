@@ -2,11 +2,12 @@ import streamlit as st
 import streamlit_tags as stt
 import streamlit.components.v1 as components
 
-import re, json, itertools, requests, platform
-from datetime import datetime, timezone
+import re, json, itertools, platform, tempfile
+from datetime import datetime
 from pathlib import Path
 from hsclient import HydroShare
-from hsmodels.schemas.fields import Creator, BoxCoverage
+from hsmodels.schemas.fields import Creator, BoxCoverage, PointCoverage
+from os import remove
 
 # from https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
 regex_mail = re.compile(
@@ -16,8 +17,36 @@ regex_doi = re.compile(
 regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 
-def send_email_to(name, info):
-    pass
+def emailNotification(resourceID):
+    emailList = ['kristen.kgs@ku.edu', 'samzipper@ku.edu']
+    # emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
+    #               'kmbefus@uark.edu', 'kristen.kgs@ku.edu', 'samzipper@ku.edu']
+    
+    url = r"https://www.hydroshare.org/resource/" + resourceID
+    
+    message = "A new GroMoPo resource has been submitted. Please view at " + url
+    subject = "New GroMoPo Resource Submitted"
+    
+    send_mail(emailList, subject, message)
+
+    
+def send_mail(to, SUBJECT, TEXT):
+    import smtplib  
+    
+    # FROM = 'kristen.kgs@ku.edu'
+    FROM = 'gromopo@ku.edu'
+    
+    if isinstance(to, list):
+        TO = to
+    else:
+        TO = [to] # must be a list
+
+    # Send the mail
+    message = """From: %s\nTo: %s\nSubject: %s\n\n%s""" % (FROM, ", ".join(TO), SUBJECT, TEXT)
+
+    server = smtplib.SMTP('smtp.ku.edu')
+    server.sendmail(FROM, TO, message)
+    server.quit()  
 
 
 def save_uploadedfile(uploadedfile):
@@ -30,6 +59,20 @@ def save_uploadedfile(uploadedfile):
     with open(file_p, "wb") as f:
         f.write(uploadedfile.getbuffer())
     return str(file_p)
+
+
+def make_upload_file(content):
+    
+    b_content = content.encode('utf-8')
+    
+    # create temp file
+    textFile = tempfile.NamedTemporaryFile()
+    
+    # write file
+    textFile.write(b_content)
+    textFile.close()
+    
+    return textFile.name
 
 
 def check_requirements(df):
@@ -103,6 +146,13 @@ def getTrueValue(term, method, data):
     return val
 
 
+def prettyDict(uglyDict):
+     
+    # Pretty Print JSON
+    prettyDict = json.dumps(uglyDict, indent=4)
+    return prettyDict
+
+
 def prettyList(term):
 
     # get origial list
@@ -110,6 +160,7 @@ def prettyList(term):
     strList = ", ".join(a_list)
 
     return strList
+
 
 def remove_items(test_list, item):
 
@@ -142,9 +193,9 @@ def push_to_hydroshare(data, method="webform"):
         pass
     
     # TODO can we avoid login in again every time?
-    try:
-    # if 1==1:
-        hs = HydroShare(st_data["t_username"], st_data["t_pw"])
+    # try:
+    if 1==1:
+        hs = HydroShare(st_data["t_un"], st_data["t_pw"])
     
         new_resource = hs.create()
         resIdentifier = new_resource.resource_id
@@ -153,30 +204,75 @@ def push_to_hydroshare(data, method="webform"):
     
         # email=data["SubmittedEmail"]
         new_resource.metadata.creators.append(Creator(name=st_data["SubmittedName"]))
+        
+        new_resource.save()
     
-        # KJK-adding error trapping in case no file was uploaded
+        # set up file upload
         uploaded_file = st_data["files"]
-        chkUpload = False
+        chkUnzip = False
         tryBox = False
+        setPublic = False
         
-        # attempt to upload the shapefile
+        # see if a zip file was uploaded
         
-        if uploaded_file != '' and method == "webform":
-            try:
-                # This is the url where the post is happening
-                hsapi_path = f'{new_resource._hsapi_path}/files/' 
-                new_resource._hs_session.upload_file(hsapi_path, 
-                                  files={'file': uploaded_file}, status_code=201)
-                
-                chkUpload = True
-            except:
-                print("file upload failed")
-                tryBox = True
+        # KJK-adding error trapping in case no file was uploaded
+        
+        if method == "webform":
+            if uploaded_file != '':
+                try:
+                    # attempt to upload additional files
+                    # This is the url where the post is happening
+                    hsapi_path = f'{new_resource._hsapi_path}/files/' 
+                    new_resource._hs_session.upload_file(hsapi_path, 
+                                      files={'file': uploaded_file}, status_code=201)
+                    
+                    # edit flags
+                    setPublic = True
+                    chkUnzip = True
+                    
+                except:
+                    print("file upload failed")
+                    tryBox = True
+
+        # # or upload a file
+        # elif uploaded_file != '' and method == "csv":
+        #     # First create a new folder
+        #     new_resource.folder_create('GroMoPoUpload')
             
-        else:
-            tryBox = True
+        #     # Upload one or more files to a specific folder within a resource
+        #     new_resource.file_upload(st_data['files'], destination_path='GroMoPoUpload')
+    
+        #     # edit flags
+        #     tryBox = True
             
         if tryBox:
+            # # prep a content for temp text file
+            # fileDict = dict(st_data)
+            # fileDict.pop("t_un")
+            # fileDict.pop("t_pw")
+            # fileDict.pop("files")
+            
+            # # make content readable
+            # fileContents = prettyDict(fileDict)
+            
+            # create temp file
+            textFile = tempfile.NamedTemporaryFile(mode="w+t", suffix=".txt", delete=False)
+            
+            textFile.write("info")
+            
+            # create a new folder in HydroShare
+            new_resource.folder_create('GroMoPoUpload')
+            
+            # Upload one or more files to a specific folder within a resource
+            new_resource.file_upload(textFile.name, destination_path='GroMoPoUpload')
+            
+            # close & remove temp text file
+            textFile.close()
+            
+            # edit flags
+            setPublic = True
+            chkUnzip = False
+                        
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
                 new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["LocDesc"].replace(";", ","),
@@ -187,6 +283,14 @@ def push_to_hydroshare(data, method="webform"):
                                                                       projection='WGS 84 EPSG:4326',
                                                                       type='box',
                                                                       units='Decimal degrees')
+                
+            else:
+                new_resource.metadata.spatial_coverage = PointCoverage(name="Global",
+                                                                      north=1.0,
+                                                                      east=1.0,                                                                      
+                                                                      projection='WGS 84 EPSG:4326',
+                                                                      type='point',
+                                                                      units='Decimal degrees')
         
         # add keywords as subjects
         # add authors as keywords
@@ -195,7 +299,7 @@ def push_to_hydroshare(data, method="webform"):
         # for a_name in st.session_state["ModelAuthors"]:
         for a_name in st_data["ModelAuthors"]:
             if a_name not in ("T. Test", "Guy McGuy", ""):
-                subjects.append(a_name)
+                subjects.append(a_name.strip())
                 
         # get all model codes
         m_codes, subjects = combine_multi_and_tags(st_data["ModelCode"], 
@@ -224,21 +328,11 @@ def push_to_hydroshare(data, method="webform"):
         new_resource.save()
     
         # see if a file was uploaded
-        if chkUpload and method == "webform":
+        if chkUnzip and method == "webform":
             # # unzip the file
             file = new_resource.files()[0]
             upload_name = file.path
             new_resource.file_unzip(path=upload_name, overwrite=True, ingest_metadata=False)
-                
-            # set sharing to public 
-            new_resource.set_sharing_status(public=True)
-            
-        # add item to GroMoPo app
-        # hsapi_path_access = f'{new_resource._hsapi_path}/access/'
-        # group_id = 212
-        # group_info = {"privilege": 2, "group_id": group_id}
-        
-        # new_resource._hs_session.put(hsapi_path_access, data=group_info, status_code=201)
     
         # We could unpack this automatically but this provides an easy possibility to rename fields
         # Also all fields in the metadata need to be
@@ -259,9 +353,14 @@ def push_to_hydroshare(data, method="webform"):
             depth = str(st_data["Depth"]) + " meters"
         else:
             depth = ''
+            
+        # verification
+        isVerified = "False"
+        if method == "csv":
+            isVerified = "True"
     
         new_resource.metadata.additional_metadata = {
-            "IsVerified": "False",
+            "IsVerified": isVerified,
             "Original Developer": st_data["OriginalDev"],
             "Model Year": str(st_data["ModelYear"]),
             "Data Available": st_data["DataAvail"],
@@ -285,19 +384,42 @@ def push_to_hydroshare(data, method="webform"):
         }
         
         # add terms as needed
-        for term in ["SameCountry", "ModelReview"]:
+        for term in ["GroMoPo_ID", "ModelReview"]:
             if term in st_data:
                 new_resource.metadata.additional_metadata[term] = st_data[term]
             
         # save additional metadata in HydroShare
         new_resource.save()
         
-    except:
-        print("Error with data upload for record " + st_data["ID"])
+        # see if the resource should be public
+        if setPublic:
+            # set sharing to public 
+            try:
+                new_resource.set_sharing_status(public=True)
+            except:
+                print("Could not add as public resource")
+                
+        emailNotification(resIdentifier)
+            
+            # try:
+            #     # add GroMoPo_admin as a co-owner
+            #     hsapi_path_access = f'{new_resource._hsapi_path}/access/'
+            #     user_id = 18677
+            #     user_info = {"privilege": 2, "user_id": user_id, "resource": resIdentifier}
+            #     new_resource._hs_session.put(hsapi_path_access, data=user_info, status_code=201)
+            # except:
+            #     print("Could not add GroMoPo as co-owner")
+            
+        #### add item to GroMoPo group
+        #### group_id = 212
+        #### group_info = {"privilege": 2, "group_id": group_id}
+        #### new_resource._hs_session.put(hsapi_path_access, data=group_info, status_code=201)
+        
+    # except:
+    #     print("Error with data upload for record " + st_data["ID"])
     
 
-
-def process_data(data: dict):
+def process_data(data:dict):
     '''
     Processes the input data for review, storage and email etc.
     This is a callback from the submit button of the form
@@ -309,7 +431,7 @@ def process_data(data: dict):
         st.warning("The following fields contain malformed data: {}".format(loffields))
         return
 
-    # FIXME ST spinner seems to be budy at the moment possibly this needs to be executed in a different task threat
+    # FIXME ST spinner seems to be buggy at the moment possibly this needs to be executed in a different task threat
     with st.spinner('Data is being processed ...'):
         push_to_hydroshare(data)
 
@@ -319,17 +441,8 @@ def process_data(data: dict):
     st.session_state.counter += 1
     st.success('Your data was successfully submitted')
 
-    send_email_to("name of reviewer", "info")
-    send_email_to("name of model dev", "info")
-    
-def writeToText(textFile, stuff):
-    from os.path import exists
-    mode = "w"
-    if exists(textFile):
-        mode = "a"
-    FILE = open(textFile,mode)
-    FILE.write(stuff)
-    FILE.close()
+#     send_email_to("name of reviewer", "info")
+#     send_email_to("name of model dev", "info")
 
 
 def combine_multi_and_tags(group1, group2, subjects):
@@ -403,9 +516,9 @@ def app():
         # 1.25 HYDROSHARE CREDENTIALS
         st.markdown("HydroShare credentials for upload. Passwords are not saved.")
 
-        t_username = st.text_input(label="HydroShare Username *", key="t_username")
+        t_un = st.text_input(label="HydroShare Username *", key="t_un")
         t_pw = st.text_input(label="HydroShare Password *", type="password", key="t_pw")
-        data["un"] = st.session_state["t_username"]
+        data["un"] = st.session_state["t_un"]
         data["pw"] = st.session_state["t_pw"]
 
         # 1.4 PUBLICATION TITLE
@@ -648,6 +761,8 @@ def app():
         data["subjects"] = subjects
         st.session_state["subjects"] = subjects
 
-        if st.form_submit_button(label='Submit', help="Submit the form", on_click=process_data, args=(data,)):
+        if st.form_submit_button(label='Submit', help="Submit the form", 
+                                 on_click=process_data, 
+                                 args=(data,)):
             st.session_state.counter += 1
             # This will trigger a message to the user that the data has been saved or if data is malformed/missing
