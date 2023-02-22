@@ -18,9 +18,8 @@ regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 
 def emailNotification(resourceID):
-    emailList = ['kristen.kgs@ku.edu', 'samzipper@ku.edu']
-    # emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
-    #               'kmbefus@uark.edu', 'kristen.kgs@ku.edu', 'samzipper@ku.edu']
+    emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
+                  'kmbefus@uark.edu', 'samzipper@ku.edu']
     
     url = r"https://www.hydroshare.org/resource/" + resourceID
     
@@ -32,8 +31,7 @@ def emailNotification(resourceID):
     
 def send_mail(to, SUBJECT, TEXT):
     import smtplib  
-    
-    # FROM = 'kristen.kgs@ku.edu'
+
     FROM = 'gromopo@ku.edu'
     
     if isinstance(to, list):

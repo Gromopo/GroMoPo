@@ -56,7 +56,7 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     modelsURL = 'https://maps.kgs.ku.edu/GroMoPo/GroMoPo_MapData.json'
     
     temp_df = gpd.read_file(modelsURL)
-    
+    temp_df = temp_df.to_crs(epsg=epsg)
     all_gdfs.append(temp_df)
     
     shp_dir = Path(dirname).joinpath('data', 'shapes')
