@@ -18,6 +18,7 @@ regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 
 def emailNotification(resourceID):
+
     emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
                   'kmbefus@uark.edu', 'samzipper@ku.edu']
     
@@ -232,16 +233,16 @@ def push_to_hydroshare(data, method="webform"):
                     print("file upload failed")
                     tryBox = True
 
-        # # or upload a file
-        # elif uploaded_file != '' and method == "csv":
-        #     # First create a new folder
-        #     new_resource.folder_create('GroMoPoUpload')
+        # or upload a file
+        elif uploaded_file != '' and method == "csv":
+            # First create a new folder
+            new_resource.folder_create('GroMoPoUpload')
             
-        #     # Upload one or more files to a specific folder within a resource
-        #     new_resource.file_upload(st_data['files'], destination_path='GroMoPoUpload')
+            # Upload one or more files to a specific folder within a resource
+            new_resource.file_upload(st_data['files'], destination_path='GroMoPoUpload')
     
-        #     # edit flags
-        #     tryBox = True
+            # edit flags
+            tryBox = True
             
         if tryBox:
             # # prep a content for temp text file
@@ -356,8 +357,10 @@ def push_to_hydroshare(data, method="webform"):
         isVerified = "False"
         if method == "csv":
             isVerified = "True"
-    
-        new_resource.metadata.additional_metadata = {
+            
+        # create dictionary of additional metadata
+        
+        addl_metadata = {
             "IsVerified": isVerified,
             "Original Developer": st_data["OriginalDev"],
             "Model Year": str(st_data["ModelYear"]),
@@ -381,6 +384,15 @@ def push_to_hydroshare(data, method="webform"):
             "Additional Information": m_add_info
         }
         
+        # loop through additional metadata, and if any values are blank, add not available
+        for key in addl_metadata:
+            val = addl_metadata[key]
+            
+            if val == '':
+                addl_metadata[key] = "N/A"
+    
+        new_resource.metadata.additional_metadata = addl_metadata
+        
         # add terms as needed
         for term in ["GroMoPo_ID", "ModelReview"]:
             if term in st_data:
@@ -394,24 +406,19 @@ def push_to_hydroshare(data, method="webform"):
             # set sharing to public 
             try:
                 new_resource.set_sharing_status(public=True)
+                
+                try:
+                    # add GroMoPo_admin as a co-owner
+                    hsapi_path_access = f'{new_resource._hsapi_path}/access/'
+                    user_id = 18677
+                    user_info = {"privilege": 2, "user_id": user_id, "resource": resIdentifier}
+                    new_resource._hs_session.put(hsapi_path_access, data=user_info, status_code=202)
+                except:
+                    print("Could not add GroMoPo as co-owner")
             except:
                 print("Could not add as public resource")
                 
         emailNotification(resIdentifier)
-            
-            # try:
-            #     # add GroMoPo_admin as a co-owner
-            #     hsapi_path_access = f'{new_resource._hsapi_path}/access/'
-            #     user_id = 18677
-            #     user_info = {"privilege": 2, "user_id": user_id, "resource": resIdentifier}
-            #     new_resource._hs_session.put(hsapi_path_access, data=user_info, status_code=201)
-            # except:
-            #     print("Could not add GroMoPo as co-owner")
-            
-        #### add item to GroMoPo group
-        #### group_id = 212
-        #### group_info = {"privilege": 2, "group_id": group_id}
-        #### new_resource._hs_session.put(hsapi_path_access, data=group_info, status_code=201)
         
     # except:
     #     print("Error with data upload for record " + st_data["ID"])
