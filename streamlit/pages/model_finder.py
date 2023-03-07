@@ -35,7 +35,9 @@ def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
     mlayer=folium.GeoJson(shp_df, name='Groundwater models', popup=popup,
                           style_function = lambda feature: {
                             'fillColor': 'grey',
+
                             'color':'blue',
+
                             'weight': 1,
                             'fillOpacity': 0.7,
     })
@@ -47,12 +49,17 @@ def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
     return rgroups, marker_cluster, mlayer   
 
 
+
 @st.cache(allow_output_mutation=True)
+
+@st.cache(suppress_st_warning=True)
+
 def load_shp(dirname, shpnames=['wdomain','woutdomain'],
              epsg=3857,color_dict={'wdomain':'blue',
                                    'woutdomain':'red',
                                    'other':'green'}):
     all_gdfs = []
+
     modelsURL = 'https://maps.kgs.ku.edu/GroMoPo/GroMoPo_MapData.json'
     
     temp_df = gpd.read_file(modelsURL)
@@ -60,21 +67,7 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     all_gdfs.append(temp_df)
     
     shp_dir = Path(dirname).joinpath('data', 'shapes')
-    # for shpname in shpnames:
-    #     shp_fname = shp_dir.joinpath('{}.shp'.format(shpname))
-    #     # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
-    #     # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
-    #     if shp_fname.exists():
-    #         temp_df = gpd.read_file(shp_fname)
-    #         if temp_df.crs.to_epsg() != epsg:
-    #             temp_df.to_crs(epsg=epsg, inplace=True)
-            
-    #         if shpname in color_dict:
-    #             temp_df['color'] = color_dict[shpname]
-    #         else:
-    #             temp_df['color'] = color_dict['other']
-            
-    #         all_gdfs.append(temp_df)
+
 
     if not all_gdfs:
         # Somehow the list is empty and something went wrong
@@ -104,6 +97,7 @@ else:
     main_path = Path(".")
 
 
+
 # popup_dict = OrderedDict({"id":"ID", "devdate":"Date developed", "name":"Model name",
 #               "url":"Publication link(s)", "custodian":"Authors",
 #                     "spscale":"Spatial scale", "purpose":"Purpose", "archive":"Model link(s)",
@@ -116,20 +110,24 @@ popup_dict = OrderedDict({"name":"Model name",
 @st.cache(allow_output_mutation=True)
 def popupHTML(row, popup_dict=popup_dict,col1width=150):
     '''Create custom HTML for popup.
+
     Parameters
     ----------
     row : TYPE
         DESCRIPTION.
+
     Returns
     -------
     html : TYPE
         DESCRIPTION.
         
     After: https://towardsdatascience.com/folium-map-how-to-create-a-table-style-pop-up-with-html-code-76903706b88a
+
     '''
     html = """<!DOCTYPE html>
             <html>
             Blahbadyblah1
+
             <table>
             <tbody>
             """
@@ -157,11 +155,13 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
             link_html = """ """
             for i,link in enumerate(links):
                 if i == 0:
+
                     link_html += """<a href="{0}" target="_blank">See HydroShare Resource</a>""".format(link)
                 elif link == 'N/A':
                     link_html += """{}<br>""".format(link)
                 else:
                     link_html += """<a href="{0}" target="_blank">See HydroShare Resource</a><br>""".format(link)
+
             
             html += link_html
             # else:

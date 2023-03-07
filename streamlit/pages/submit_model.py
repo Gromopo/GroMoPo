@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit_tags as stt
+
 import streamlit.components.v1 as components
 
 import re, json, itertools, platform, tempfile
@@ -467,9 +468,15 @@ else:
     main_path = Path("streamlit")
 
 
+if platform.system() == 'Windows':
+    main_path = Path(".")
+else:
+    main_path = Path("streamlit")
+
 @st.cache
 def get_countries():
     with open(main_path.joinpath('utils', 'countries.json'), 'r') as cs:
+
         country_data = cs.read()
     countries = json.loads(country_data)["countries"]
     l_countries = [d['name'] for d in countries]
