@@ -3,3 +3,5 @@ geopandas
 matplotlib
 streamlit-folium
 streamlit-tags
+hsclient
+geojson
