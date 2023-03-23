@@ -64,6 +64,11 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     
     temp_df = gpd.read_file(modelsURL)
     temp_df = temp_df.to_crs(epsg=epsg)
+    
+    if 'devdate' in temp_df.columns:
+        # Convert timestamp loaded by pandas to text
+        temp_df['devdate'] = temp_df['devdate'].astype('str')
+    
     all_gdfs.append(temp_df)
     
     shp_dir = Path(dirname).joinpath('data', 'shapes')
