@@ -210,9 +210,9 @@ all_gdf[objc] = all_gdf[objc].replace([None],'N/A')
 # Create popup html attribute
 all_gdf['popup_html'] = all_gdf.apply(popupHTML,axis=1)
 
-if 'devdate' in all_gdf.columns:
-    # Convert timestamp loaded by pandas to text
-    all_gdf['devdate'] = all_gdf['devdate'].astype('str')
+# if 'devdate' in all_gdf.columns:
+# Convert timestamp loaded by pandas to text
+all_gdf['devdate'] = all_gdf['devdate'].astype('str')
 
 # print(Path().absolute())
 #Load water table base map
