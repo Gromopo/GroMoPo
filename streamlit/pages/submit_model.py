@@ -517,7 +517,7 @@ def app():
 
         # 1.1 SUBMITTER NAME
         t_name = st.text_input(label="Your name (which may be different than model developer)",
-                            value="Guy McGuy", key="SubmittedName")
+                            value="GroMoPo User", key="SubmittedName")
         # Text field to fill in the name – constrain to string datatype only.
         data["SubmittedName"] = t_name
 
@@ -534,11 +534,11 @@ def app():
         data["pw"] = st.session_state["t_pw"]
 
         # 1.4 PUBLICATION TITLE
-        t_model_name = st.text_input(label="Publication Title *", value="My Interesting Model", key="ModelName")
+        t_model_name = st.text_input(label="Publication Title *", value="Model Publication Name", key="ModelName")
         data["ModelName"] = t_model_name
 
         # 1.45 PUBLICATION/MODEL ABSTRACT
-        t_abstract = st.text_input(label="Publication/Model Abstract *", value="My model does amazing things.", key="Abstract")
+        t_abstract = st.text_input(label="Publication/Model Abstract *", value="Please paste abstract here.", key="Abstract")
         data["Abstract"] = t_abstract
 
         # 1.5 MODEL YEAR
@@ -595,10 +595,10 @@ def app():
         data["SameCountry"] = b_country
         
         st.markdown("# Model File Attachment")
-        st.markdown("Please upload files associated with the model as a zip file.")
+        st.markdown("Please upload spatial geometry files associated with the model as a zip file (e.g., shapefile of model boundary or extent).")
         
         # 2.6.1 UPLOAD FILE
-        uploaded_files = st.file_uploader(label="Zipped files, max size 5 MB",
+        uploaded_files = st.file_uploader(label="Zipped files, max size 5 MB - please use HydroShare.org or another data repository for publishing other model files",
                                           accept_multiple_files=False, type="zip", key="files")
             
         
@@ -761,11 +761,11 @@ def app():
         # 5.2 GroMoPo FEEDBACK
         t_additional = st.text_area(
             label="Did you encounter any troubles while filling the form? Or do you have anything else you would like to share with GroMoPo?",
-            value="Complaints or thoughts", key="Additional")
+            value="Problems, comments, or suggestions", key="Additional")
         data["Additional"] = t_additional
 
         # KJK- add subjects/tags, but remove certain tags
-        remove_tags = ["Unknown", "Other", "Guy McGuy", "", "T. Test"]
+        remove_tags = ["Unknown", "Other", "Guy McGuy", "", "T. Test", "GroMoPo User"]
 
         for tag in remove_tags:
             subjects = remove_items(subjects, tag)

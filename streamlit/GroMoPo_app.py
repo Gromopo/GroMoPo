@@ -1,16 +1,17 @@
 import streamlit as st
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 
-# Our app libs - possibly move to own folder
-# from utils import helpers
 from utils.multipage import MultiPage
 from pages import home, about, submit_model, model_finder
 from pathlib import Path
 import platform
 
+
+
 from streamlit_option_menu import option_menu
 
 
-st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+
 
 app = MultiPage()
 
