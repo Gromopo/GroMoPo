@@ -248,7 +248,7 @@ def app():
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
     
     # st.write("Path: {}".format(rast_fname))
-    st.write("Columns are {}".format(all_gdf.dtypes))
+    # st.write("Columns are {}".format(all_gdf.dtypes))
     m = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(m)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
