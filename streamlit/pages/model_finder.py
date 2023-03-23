@@ -65,18 +65,6 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     temp_df = gpd.read_file(modelsURL)
     temp_df = temp_df.to_crs(epsg=epsg)
     
-    # date_columns = temp_df.select_dtypes(include=['datetime']).columns.tolist()
-    if 'devdate' in temp_df.columns:
-        temp_df.drop('devdate',inplace=True,axis=1)
-    
-    # # Convert datetime to string
-    # temp_df[date_columns] = temp_df[date_columns].astype(str)
-    
-    # if 'devdate' in temp_df.columns:
-    #     # Change column type
-    #     temp_df['devdate'] = temp_df['devdate'].astype(str)
-    #     # temp_df.drop('devdate',inplace=True)
-    
     all_gdfs.append(temp_df)
     
     shp_dir = Path(dirname).joinpath('data', 'shapes')
@@ -218,6 +206,7 @@ all_gdf[objc] = all_gdf[objc].replace([None],'N/A')
 # Create popup html attribute
 all_gdf['popup_html'] = all_gdf.apply(popupHTML,axis=1)
 
+all_gdf['devdate'] = all_gdf['devdate'].astype(str)
 
 # print(Path().absolute())
 #Load water table base map
@@ -248,7 +237,8 @@ def app():
              " model input and scripts for translating commonly used geospatial datasets into model inputs.")
     
     # st.write("Path: {}".format(rast_fname))
-    st.write("Columns are {}".format(all_gdf.dtypes))
+    # st.write("Columns are {}".format(all_gdf.dtypes))
+    
     m = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(m)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
