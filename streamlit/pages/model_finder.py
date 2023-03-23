@@ -67,12 +67,12 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     
     # if 'devdate' in temp_df.columns:
     # # Drop this column
-    # temp_df.drop('devdate',inplace=True)
+    temp_df.drop('devdate',inplace=True)
     
     # Not working - still have timestamp error
     # if 'devdate' in temp_df.columns:
     # Convert timestamp loaded by pandas to text
-    temp_df['devdate'] = temp_df['devdate'].astype('str')
+    # temp_df['devdate'] = temp_df['devdate'].astype('str')
     
     all_gdfs.append(temp_df)
     
