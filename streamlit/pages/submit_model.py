@@ -367,6 +367,7 @@ def push_to_hydroshare(data, method="webform"):
             "Model Year": str(st_data["ModelYear"]),
             "Data Available": st_data["DataAvail"],
             #"SameCountry": st_data["SameCountry"],
+            "Developer Country": st_data["DevCountry"],
             "Model Country": st_data["ModelCountry"],
             "Model Authors": ', '.join(st_data["ModelAuthors"]),
             "Developer Email": st_data["DevEmail"],
@@ -586,13 +587,17 @@ def app():
         # 1.10 COUNTRY OF INSTITUTE OR DEVELOPER
         l_countries = get_countries()
         t_country = st.selectbox(label="Country of primary model developer or institution *",
-                                options=l_countries, key="ModelCountry")
-        data["ModelCountry"] = t_country
+                                options=l_countries, key="DevCountry")
+        data["DevCountry"] = t_country
         
         # 1.9 MODEL INSTITUTE COUNTRY vs. MODEL LOCATION
         b_country = st.radio(label="Is the model developer's institute located in the same country as the model location? *",
                              options=("Yes", "No", "Unclear"), key="SameCountry")
         data["SameCountry"] = b_country
+        
+        c_country = st.multiselect(label="Location of model (if different, can select multiple)",
+                            options=l_countries, key="ModelCountry")
+        data["ModelCountry"] = c_country
         
         st.markdown("# Model File Attachment")
         st.markdown("Please upload spatial geometry files associated with the model as a zip file (e.g., shapefile of model boundary or extent).")
@@ -638,14 +643,14 @@ def app():
         data["West"] = t_west
         
         # 2.5 MODEL SCALE
-        scale_r = st.radio(label="Model Scale", options=("Unknown", "Global", "Continental", "National", ">100 000 km²",
+        scale_r = st.multiselect(label="Model Scale (can choose multiple)", options=("Unknown", "Global", "Continental", "National", ">100 000 km²",
                                 "10 001 - 100 000 km²", "1 001 - 10 000 km²", "101 - 1 000 km²",
                                 "11 - 101 km²", "< 10 km²", "Other"), key="ModelScale")
 
         scale_r_2 = st.text_input(label="If Other, enter scale:", value="", key="ModelScale2")
 
-        if st.session_state.ModelScale == "Other" and st.session_state.ModelScale2 != "":
-            data["ModelScale"] = st.session_state.ModelScale2
+        if "Other" in st.session_state.ModelScale and st.session_state.ModelScale2 != "":
+            data["ModelScale"].append(st.session_state.ModelScale2)
         else:
             data["ModelScale"] = st.session_state.ModelScale
         subjects.append(data["ModelScale"])

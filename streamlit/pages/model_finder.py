@@ -61,7 +61,7 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     all_gdfs = []
 
     modelsURL = 'https://maps.kgs.ku.edu/GroMoPo/GroMoPo_MapData.json'
-    
+
     temp_df = gpd.read_file(modelsURL)
     temp_df = temp_df.to_crs(epsg=epsg)
     
@@ -105,8 +105,9 @@ else:
 #                     "coupling":"Coupling", "contribu_1":"Contributed by"})
 
 popup_dict = OrderedDict({"name":"Model name",
-              "url":"Publication link(s)", "authors":"Authors",
-                    "abstract":"Abstract"})
+                          "authors":"Authors",
+                          "url":"More information",
+                          "gmpverify":"Verified"})
 
 @st.cache(allow_output_mutation=True)
 def popupHTML(row, popup_dict=popup_dict,col1width=150):
@@ -125,13 +126,7 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
     After: https://towardsdatascience.com/folium-map-how-to-create-a-table-style-pop-up-with-html-code-76903706b88a
 
     '''
-    html = """<!DOCTYPE html>
-            <html>
-            Blahbadyblah1
-
-            <table>
-            <tbody>
-            """
+    
     
     for key, value in popup_dict.items():
         # Loop through entries for popup with specific formatting
@@ -141,9 +136,20 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
         else:
             second_col_val = row[key]
         
-        if 'link' in value: # format for clickable link
+        if key=='name':
+            # Set title of popup box as the model name
+            html = """<!DOCTYPE html>
+            <html>
+            <b>{0}</b>
+
+            <table>
+            <tbody>
+            """.format(second_col_val)
+            
+        
+        elif key=='url': # format for clickable link
             html += """<tr>
-                       <td><span style="width: {0}px; color: #293191; overflow-wrap: break-word;"><b>{1}</b></span></td>
+                       <td><span style="width: {0}px; color: #000000; overflow-wrap: break-word;"><b>{1}</b></span></td>
                        <td><span style="overflow-wrap: break-word;>""".format(col1width,value) # Attribute name
                        
             # if second_col_val != 'N/A' and second_col_val is not None:
@@ -155,13 +161,14 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
             # link_html = """ """.join(["""<a href="{0}" target="_blank"> {0}</a><br>""".format(link) for link in links])
             link_html = """ """
             for i,link in enumerate(links):
-                if i == 0:
-
-                    link_html += """<a href="{0}" target="_blank">See HydroShare Resource</a>""".format(link)
-                elif link == 'N/A':
-                    link_html += """{}<br>""".format(link)
-                else:
-                    link_html += """<a href="{0}" target="_blank">See HydroShare Resource</a><br>""".format(link)
+                if link != 'N/A':
+                    if i == 0:
+                        # Dummy link
+                        link_html += """<a href="{0}" target="_blank"></a>""".format(link)
+                    # elif link == 'N/A':
+                    #     link_html += """{}<br>""".format(link)
+                    else:
+                        link_html += """<a href="{0}" target="_blank">See HydroShare Resource</a><br>""".format(link)
 
             
             html += link_html
@@ -170,7 +177,6 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
                 
             html += """</span></td></tr>"""
             # html += """</td></td></td></tr>"""
-
 
         else:
             html += """<tr>
