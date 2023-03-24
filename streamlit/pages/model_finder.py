@@ -237,10 +237,10 @@ rasters_dict = {'degraaf_dep':{'name':'Water table depth [de Graaf] (Yellow = >1
 
 def app():
     st.title('GroMoPo — Groundwater Model Portal')
-    st.write("Sharing groundwater model data, knowledge and insights more easily through"
-             " a portal of regional and global numerical groundwater models."
-             "The first priority is archiving existing models, but the repository could eventually archive"
-             " model input and scripts for translating commonly used geospatial datasets into model inputs.")
+    st.write("Groundwater models are crucial for understanding groundwater science and sustainability but they are not "
+             "consistently and openly shared. You can explore or share groundwater model data, knowledge, and insights "
+             "through this unique portal of regional and global numerical groundwater models. We've made it easy! Fly "
+             "around the world on our map or grab a coffee and share your first model in less than 10 minutes!")
     
     # st.write("Path: {}".format(rast_fname))
     # st.write("Columns are {}".format(all_gdf.dtypes))
