@@ -1,12 +1,12 @@
 # About
 
-<p align="center"><img src="..\img\GroMoPo_logo_V1.png" height="482" width="508" ></p>
+<p align="center"><img src="https://github.com/Gromopo/GroMoPo/blob/develop/streamlit/pages/img/GroMoPo_logo_V1.png" height="482" width="508" ></p>
 
 ## Vision
 
 GroMoPo is a portal for sharing global to regional groundwater model data, knowledge and insights. Our vision is to be the one-stop-shop for both sharing and discovering groundwater models. 
 
-<p align="center"><img src="..\img\benefits.png" height="285" width="312" ></p>
+<p align="center"><img src="https://github.com/Gromopo/GroMoPo/blob/develop/streamlit/pages/img/benefits.png" height="285" width="312" ></p>
 
 We envision GroMoPo as a resource with benefits to the entire groundwater science and engineering community, inculding groundwater modelers, educators, and researchers in related disciplines. To achieve these, these groups will also need to contribute.
 
