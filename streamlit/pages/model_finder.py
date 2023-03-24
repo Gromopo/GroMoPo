@@ -50,17 +50,16 @@ def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
 
 
 
-@st.cache(allow_output_mutation=True)
 
-@st.cache(suppress_st_warning=True)
+@st.cache_data
 
 def load_shp(dirname, shpnames=['wdomain','woutdomain'],
              epsg=3857,color_dict={'wdomain':'blue',
                                    'woutdomain':'red',
                                    'other':'green'}):
     all_gdfs = []
-
-    modelsURL = 'https://maps.kgs.ku.edu/GroMoPo/GroMoPo_MapData.json'
+    modelsURL = 'https://www.hydroshare.org/resource/114b76f89d1c41c38e0e235443c7544c/data/contents/GroMoPo_MapData.json'
+    # modelsURL = 'https://maps.kgs.ku.edu/GroMoPo/GroMoPo_MapData.json'
 
     temp_df = gpd.read_file(modelsURL)
     temp_df = temp_df.to_crs(epsg=epsg)
@@ -85,7 +84,7 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     
     return all_gdf, shp_dir
 
-@st.cache  
+@st.cache_data  
 def read_img(fname, skip_rows=60):
     img = imread(fname)
     cm_out = img[skip_rows:-skip_rows, :, :]
@@ -109,7 +108,7 @@ popup_dict = OrderedDict({"name":"Model name",
                           "url":"More information",
                           "gmpverify":"Verified"})
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def popupHTML(row, popup_dict=popup_dict,col1width=150):
     '''Create custom HTML for popup.
 
