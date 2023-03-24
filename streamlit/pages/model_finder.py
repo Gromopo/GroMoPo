@@ -136,6 +136,10 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
             second_col_val = row[key]
         
         if key=='name':
+            
+            # Remove Gromopo addition
+            second_col_val = ' '.join(second_col_val.split()[4:])
+            
             # Set title of popup box as the model name
             html = """<!DOCTYPE html>
             <html>
