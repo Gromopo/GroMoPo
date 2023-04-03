@@ -370,6 +370,7 @@ def push_to_hydroshare(data, method="webform"):
             "Developer Country": st_data["DevCountry"],
             "Model Country": st_data["ModelCountry"],
             "Model Authors": ', '.join(st_data["ModelAuthors"]),
+            "Model Link": st_data["ModelLink"],
             "Developer Email": st_data["DevEmail"],
             #"Model Review": st_data["ModelReview"],
             "DOI Citation": st_data["Cite"],
@@ -541,6 +542,10 @@ def app():
         # 1.45 PUBLICATION/MODEL ABSTRACT
         t_abstract = st.text_input(label="Publication/Model Abstract *", value="Please paste abstract here.", key="Abstract")
         data["Abstract"] = t_abstract
+        
+        # 1.46 MODEL LINK
+        t_model_link = st.text_input(label="Link to paper, report, or model", value="", key="ModelLink")
+        data["ModelLink"] = t_model_link
 
         # 1.5 MODEL YEAR
         yearVal = datetime.now().date().year
