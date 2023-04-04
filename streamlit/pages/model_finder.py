@@ -103,9 +103,9 @@ else:
 #                     "spscale":"Spatial scale", "purpose":"Purpose", "archive":"Model link(s)",
 #                     "coupling":"Coupling", "contribu_1":"Contributed by"})
 
-popup_dict = OrderedDict({"name":"Model name",
-                          "authors":"Authors",
-                          "url":"More information",
+popup_dict = OrderedDict({"Title":"Model name",
+                          "Authors":"Authors",
+                          "HS_URL":"More information",
                           "gmpverify":"Verified"})
 
 @st.cache_data
@@ -135,7 +135,7 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
         else:
             second_col_val = row[key]
         
-        if key=='name':
+        if key=='Title':
             
             # Remove Gromopo addition
             second_col_val = ' '.join(second_col_val.split()[4:])
@@ -150,7 +150,7 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
             """.format(second_col_val)
             
         
-        elif key=='url': # format for clickable link
+        elif key=='HS_URL': # format for clickable link
             html += """<tr>
                        <td><span style="width: {0}px; color: #000000; overflow-wrap: break-word;"><b>{1}</b></span></td>
                        <td><span style="overflow-wrap: break-word;>""".format(col1width,value) # Attribute name
@@ -215,7 +215,7 @@ all_gdf[objc] = all_gdf[objc].replace([None],'N/A')
 # Create popup html attribute
 all_gdf['popup_html'] = all_gdf.apply(popupHTML,axis=1)
 
-all_gdf['devdate'] = all_gdf['devdate'].astype(str)
+all_gdf['DevDate'] = all_gdf['DevDate'].astype(str)
 
 # print(Path().absolute())
 #Load water table base map
