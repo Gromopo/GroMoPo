@@ -627,24 +627,24 @@ def app():
 
         # 2.6.2 CENTROID
         st.markdown("Top left coordinate")
-        # t_north = st.number_input(label="North Latitude/Y Value (ex. 37.023)", 
-        #                     min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
-        # t_west = st.number_input(label="West Longitude/X Value (ex. -103.025)", 
-        #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
+        #t_north = st.number_input(label="Top Left Latitude/Y Value (ex. 37.023)", 
+        #                    min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
+        #t_west = st.number_input(label="Top Left Longitude/X Value (ex. -103.025)", 
+        #                    min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
         t_north = st.text_input(label="Top Left Latitude/Y Value (ex. 37.023)", 
-                            min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
+                            value="0.0", key="North")
         t_west = st.text_input(label="Top Left Longitude/X Value (ex. -103.025)", 
-                            min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
+                            value="0.0", key="West")
 
         st.markdown("Bottom right coordinate")
-        # t_south = st.number_input(label="South Latitude/Y Value (ex. 33.764)", 
-        #                     min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
-        # t_east = st.number_input(label="East Longitude/X Value (ex. -94.544)", 
-        #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
+        #t_south = st.number_input(label="Bottom Right Latitude/Y Value (ex. 33.764)", 
+        #                    min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
+        #t_east = st.number_input(label="Bottom Right Longitude/X Value (ex. -94.544)", 
+        #                    min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
         t_south = st.text_input(label="Bottom Right Latitude/Y Value (ex. 33.764)", 
-                            min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
+                            value="0.0", key="South")
         t_east = st.text_input(label="Bottom Right Longitude/X Value (ex. -94.544)", 
-                            min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
+                            value="0.0", key="East")
         data["North"] = t_north
         data["East"] = t_east
         data["South"] = t_south
