@@ -113,12 +113,13 @@ def check_requirements(df):
         "SubmittedEmail": (lambda x: is_valid_mail(x)),
         #"un": (lambda x: is_valid_string(x)),
         #"pw": (lambda x: is_valid_string(x)),
+        "PubTitle": (lambda x: is_valid_string(x)),
         "ModelName": (lambda x: is_valid_string(x)),
         "Abstract": (lambda x: is_valid_string(x)),
         "ModelCountry": (lambda x: is_valid_string(x)),
         "ModelAuthors": (lambda x: not len(x) == 0),  # assumes that author list can't be empty
         "DevEmail": (lambda x: is_valid_mail(x)),
-        # "Cite": (lambda x: is_valid_ref(x)), # FIXME currently this regex is not working
+        # "DOI": (lambda x: is_valid_ref(x)), # FIXME currently this regex is not working
         "North": (lambda x: is_valid_lat(x)),
         "South": (lambda x: is_valid_lat(x)),
         "East": (lambda x: is_valid_lon(x)),
@@ -275,7 +276,7 @@ def push_to_hydroshare(data, method="webform"):
                         
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
-                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["LocDesc"].replace(";", ","),
+                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["ModelCountry"].replace(";", ","),
                                                                       northlimit=st_data["North"],
                                                                       eastlimit=st_data["East"],
                                                                       southlimit=st_data["South"],
@@ -363,6 +364,7 @@ def push_to_hydroshare(data, method="webform"):
         
         addl_metadata = {
             "IsVerified": isVerified,
+            "Publication Title": st_data["PubTitle"],
             "Original Developer": st_data["OriginalDev"],
             "Model Year": str(st_data["ModelYear"]),
             "Data Available": st_data["DataAvail"],
@@ -373,7 +375,7 @@ def push_to_hydroshare(data, method="webform"):
             "Model Link": st_data["ModelLink"],
             "Developer Email": st_data["DevEmail"],
             #"Model Review": st_data["ModelReview"],
-            "DOI Citation": st_data["Cite"],
+            "DOI": st_data["DOI"],
             "Scale": m_scale,
             "Layers": st_data["Layers"],
             "Depth": depth,
@@ -536,12 +538,16 @@ def app():
         data["pw"] = st.session_state["t_pw"]
 
         # 1.4 PUBLICATION TITLE
-        t_model_name = st.text_input(label="Publication Title *", value="Model Publication Name", key="ModelName")
-        data["ModelName"] = t_model_name
+        t_pub_title = st.text_input(label="Publication Title *", value="Model Publication Name", key="PubTitle")
+        data["PubTitle"] = t_pub_title
 
         # 1.45 PUBLICATION/MODEL ABSTRACT
         t_abstract = st.text_input(label="Publication/Model Abstract *", value="Please paste abstract here.", key="Abstract")
         data["Abstract"] = t_abstract
+        
+        # DESCRIPTIVE MODEL NAME       
+        model_name = st.text_input(label="Brief Descriptive Model Name (i.e., Edwards Aquifer model)", value="", key="ModelName")
+        data["ModelName"] = model_name
         
         # 1.46 MODEL LINK
         t_model_link = st.text_input(label="Link to paper, report, or model", value="", key="ModelLink")
@@ -550,15 +556,15 @@ def app():
         # 1.5 MODEL YEAR
         yearVal = datetime.now().date().year
         n_year = st.slider(label="Year of model development/publication *", min_value=1960,
-                           max_value=2050,
+                           max_value=2030,
                            value=yearVal, key="ModelYear")
         data["ModelYear"] = n_year
         subjects.append(str(n_year)[0:4])
 
         # 1.6 DOI/CITATION
-        t_cite = st.text_input(label="DOI (Digital Object Identifier) for model.",
-                            value="", key="Cite")
-        data["Cite"] = t_cite
+        t_doi = st.text_input(label="DOI (Digital Object Identifier) for model.",
+                            value="", key="DOI")
+        data["DOI"] = t_doi
         
         # 1.8 MODEL AVAILABILITY
         t_m_avail = st.radio(label="Model data availability *", options=("Report/paper only", "Output publicly available",
@@ -600,10 +606,6 @@ def app():
                              options=("Yes", "No", "Unclear"), key="SameCountry")
         data["SameCountry"] = b_country
         
-        c_country = st.multiselect(label="Location of model (if different, can select multiple)",
-                            options=l_countries, key="ModelCountry")
-        data["ModelCountry"] = c_country
-        
         st.markdown("# Model File Attachment")
         st.markdown("Please upload spatial geometry files associated with the model as a zip file (e.g., shapefile of model boundary or extent).")
         
@@ -613,14 +615,15 @@ def app():
             
         
         # 2.6 MODEL EXTENT
+        c_country = st.multiselect(label="Model country (can select multiple)",
+                            options=l_countries, key="ModelCountry")
+        data["ModelCountry"] = c_country
+        
         st.markdown("# Model Extent and Scale")
         st.markdown("Please enter bounding box coordinates for model extent.")
         st.markdown("The bounding box coordinates can be easily achieved through e.g. google maps where you can right"
                     " click on a point in the map and then click on the coordinates it automatically shows."
                     " Then you can simply copy those in the fields below.")
-        
-        loc_desc = st.text_input(label="Location description", value="", key="LocDesc")
-        data["LocDesc"] = loc_desc
 
         # 2.6.2 CENTROID
         st.markdown("Top left coordinate")
@@ -628,20 +631,20 @@ def app():
         #                     min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
         # t_west = st.number_input(label="West Longitude/X Value (ex. -103.025)", 
         #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
-        t_north = st.text_input(label="North Latitude/Y Value (ex. 37.023)", 
-                            value="0.0", key="North")
-        t_west = st.text_input(label="West Longitude/X Value (ex. -103.025)", 
-                            value="0.0", key="West")
+        t_north = st.text_input(label="Top Left Latitude/Y Value (ex. 37.023)", 
+                            min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
+        t_west = st.text_input(label="Top Left Longitude/X Value (ex. -103.025)", 
+                            min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
 
         st.markdown("Bottom right coordinate")
         # t_south = st.number_input(label="South Latitude/Y Value (ex. 33.764)", 
         #                     min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
         # t_east = st.number_input(label="East Longitude/X Value (ex. -94.544)", 
         #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
-        t_south = st.text_input(label="South Latitude/Y Value (ex. 33.764)", 
-                            value="0.0", key="South")
-        t_east = st.text_input(label="East Longitude/X Value (ex. -94.544)", 
-                            value="0.0", key="East")
+        t_south = st.text_input(label="Bottom Right Latitude/Y Value (ex. 33.764)", 
+                            min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
+        t_east = st.text_input(label="Bottom Right Longitude/X Value (ex. -94.544)", 
+                            min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
         data["North"] = t_north
         data["East"] = t_east
         data["South"] = t_south
@@ -744,7 +747,7 @@ def app():
         # 3.4 EVALUATION
         eval_r = st.multiselect(label="Model evaluation or calibration. Select all applicable.",
                           options=("Static water levels", "Dynamic water levels", "Baseflow",
-                           "Groundwater chemistry", "Contaminant concentrations"), key="ModelEval")
+                           "Groundwater chemistry", "Contaminant concentrations", "Other (list below)"), key="ModelEval")
 
         eval_r_2 = stt.st_tags(
             label='Enter additional model evaluation(s)',
