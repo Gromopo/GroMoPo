@@ -276,7 +276,7 @@ def push_to_hydroshare(data, method="webform"):
                         
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
-                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["LocDesc"].replace(";", ","),
+                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["ModelCountry"].replace(";", ","),
                                                                       northlimit=st_data["North"],
                                                                       eastlimit=st_data["East"],
                                                                       southlimit=st_data["South"],
@@ -364,6 +364,7 @@ def push_to_hydroshare(data, method="webform"):
         
         addl_metadata = {
             "IsVerified": isVerified,
+            "Publication Title": st_data["PubTitle"],
             "Original Developer": st_data["OriginalDev"],
             "Model Year": str(st_data["ModelYear"]),
             "Data Available": st_data["DataAvail"],
@@ -631,9 +632,9 @@ def app():
         # t_west = st.number_input(label="West Longitude/X Value (ex. -103.025)", 
         #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
         t_north = st.text_input(label="Top Left Latitude/Y Value (ex. 37.023)", 
-                            value="0.0", key="North")
+                            min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
         t_west = st.text_input(label="Top Left Longitude/X Value (ex. -103.025)", 
-                            value="0.0", key="West")
+                            min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
 
         st.markdown("Bottom right coordinate")
         # t_south = st.number_input(label="South Latitude/Y Value (ex. 33.764)", 
@@ -641,9 +642,9 @@ def app():
         # t_east = st.number_input(label="East Longitude/X Value (ex. -94.544)", 
         #                     min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
         t_south = st.text_input(label="Bottom Right Latitude/Y Value (ex. 33.764)", 
-                            value="0.0", key="South")
+                            min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
         t_east = st.text_input(label="Bottom Right Longitude/X Value (ex. -94.544)", 
-                            value="0.0", key="East")
+                            min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
         data["North"] = t_north
         data["East"] = t_east
         data["South"] = t_south
