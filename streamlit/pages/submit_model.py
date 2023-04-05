@@ -791,3 +791,5 @@ def app():
                                  args=(data,)):
             st.session_state.counter += 1
             # This will trigger a message to the user that the data has been saved or if data is malformed/missing
+
+        st.markdown("Any issues? [Report them on GitHub](https://github.com/Gromopo/GroMoPo/issues).")
