@@ -288,3 +288,5 @@ def app():
     Fullscreen().add_to(m)
 
     folium_static(m, height=700, width=1400)
+    
+    st.markdown("Any issues? [Report them on GitHub](https://github.com/Gromopo/GroMoPo/issues).")
