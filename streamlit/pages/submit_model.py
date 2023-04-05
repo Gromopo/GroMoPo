@@ -386,7 +386,8 @@ def push_to_hydroshare(data, method="webform"):
             "Purpose": ', '.join(m_purpose),
             "Integration or Coupling": ', '.join(m_integ),
             "Evaluation or Callibration": ', '.join(m_eval),
-            "Additional Information": m_add_info
+            "Additional Information": m_add_info,
+            "Creator Email": st_data["SubmittedEmail"]
         }
         
         # loop through additional metadata, and if any values are blank, add not available
