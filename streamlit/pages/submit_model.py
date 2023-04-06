@@ -18,7 +18,7 @@ regex_doi = re.compile(
 regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 
-def emailNotification(resourceID):
+def emailNotification(resourceID, gmp_form_time, gmp_feedback):
 
     emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
                   'kmbefus@uark.edu', 'samzipper@ku.edu']
@@ -26,6 +26,10 @@ def emailNotification(resourceID):
     url = r"https://www.hydroshare.org/resource/" + resourceID
     
     message = "A new GroMoPo resource has been submitted. Please view at " + url
+    if gmp_form_time != "":
+        message += "/nTime to fill out form: " + gmp_form_time
+    if gmp_feedback != "":
+        message += "/nForm Feedback: " + gmp_feedback
     subject = "New GroMoPo Resource Submitted"
     
     send_mail(emailList, subject, message)
@@ -371,7 +375,7 @@ def push_to_hydroshare(data, method="webform"):
             #"SameCountry": st_data["SameCountry"],
             "Developer Country": st_data["DevCountry"],
             "Model Country": st_data["ModelCountry"],
-            "Model Authors": ', '.join(st_data["ModelAuthors"]),
+            #"Model Authors": ', '.join(st_data["ModelAuthors"]),
             "Model Link": st_data["ModelLink"],
             "Developer Email": st_data["DevEmail"],
             #"Model Review": st_data["ModelReview"],
@@ -424,7 +428,7 @@ def push_to_hydroshare(data, method="webform"):
             except:
                 print("Could not add as public resource")
                 
-        emailNotification(resIdentifier)
+        emailNotification(resIdentifier, st_data["TimeToFillOut"], st_data["Additional"])
         
     # except:
     #     print("Error with data upload for record " + st_data["ID"])
