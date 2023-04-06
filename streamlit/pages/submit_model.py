@@ -118,9 +118,9 @@ def check_requirements(df):
         #"un": (lambda x: is_valid_string(x)),
         #"pw": (lambda x: is_valid_string(x)),
         "PubTitle": (lambda x: is_valid_string(x)),
-        "ModelName": (lambda x: is_valid_string(x)),
+        #"ModelName": (lambda x: is_valid_string(x)),
         "Abstract": (lambda x: is_valid_string(x)),
-        "ModelCountry": (lambda x: is_valid_string(x)),
+        #"ModelCountry": (lambda x: is_valid_string(x)),
         "ModelAuthors": (lambda x: not len(x) == 0),  # assumes that author list can't be empty
         "DevEmail": (lambda x: is_valid_mail(x)),
         # "DOI": (lambda x: is_valid_ref(x)), # FIXME currently this regex is not working
