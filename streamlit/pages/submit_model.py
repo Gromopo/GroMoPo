@@ -277,10 +277,14 @@ def push_to_hydroshare(data, method="webform"):
             # edit flags
             setPublic = True
             chkUnzip = False
+            
+            # turn ModelCountry into a string instead of a list
+            lstCountries = st_data["ModelCountry"]
+            strCountires = ", ".join(lstCountries)
                         
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
-                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["ModelCountry"].replace(";", ","),
+                new_resource.metadata.spatial_coverage = BoxCoverage(name=strCountries,
                                                                       northlimit=st_data["North"],
                                                                       eastlimit=st_data["East"],
                                                                       southlimit=st_data["South"],
@@ -374,7 +378,7 @@ def push_to_hydroshare(data, method="webform"):
             "Data Available": st_data["DataAvail"],
             #"SameCountry": st_data["SameCountry"],
             "Developer Country": st_data["DevCountry"],
-            "Model Country": st_data["ModelCountry"],
+            "Model Country": strCountries,
             #"Model Authors": ', '.join(st_data["ModelAuthors"]),
             "Model Link": st_data["ModelLink"],
             "Developer Email": st_data["DevEmail"],
