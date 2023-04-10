@@ -20,8 +20,9 @@ regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 def emailNotification(resourceID, gmp_form_time, gmp_feedback):
 
-    emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
-                  'kmbefus@uark.edu', 'samzipper@ku.edu']
+    #emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
+                 # 'kmbefus@uark.edu', 'samzipper@ku.edu']
+    emailList = ["kristen.kgs@ku.edu"]
     
     url = r"https://www.hydroshare.org/resource/" + resourceID
     
@@ -281,6 +282,7 @@ def push_to_hydroshare(data, method="webform"):
             # turn ModelCountry into a string instead of a list
             lstCountries = st_data["ModelCountry"]
             strCountries = ", ".join(lstCountries)
+            emailNotification("abc123", strCountries, strCountries)
                         
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
