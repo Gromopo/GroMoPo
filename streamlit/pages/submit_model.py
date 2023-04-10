@@ -280,7 +280,7 @@ def push_to_hydroshare(data, method="webform"):
             
             # turn ModelCountry into a string instead of a list
             lstCountries = st_data["ModelCountry"]
-            strCountires = ", ".join(lstCountries)
+            strCountries = ", ".join(lstCountries)
                         
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
