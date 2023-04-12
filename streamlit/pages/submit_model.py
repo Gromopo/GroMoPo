@@ -20,9 +20,8 @@ regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 def emailNotification(resourceID, gmp_form_time, gmp_feedback):
 
-    #emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
-                 # 'kmbefus@uark.edu', 'samzipper@ku.edu']
-    emailList = ["kristen.kgs@ku.edu"]
+    emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
+                  'kmbefus@uark.edu', 'samzipper@ku.edu']
     
     url = r"https://www.hydroshare.org/resource/" + resourceID
     
@@ -205,7 +204,7 @@ def push_to_hydroshare(data, method="webform"):
     
         new_resource = hs.create()
         resIdentifier = new_resource.resource_id
-        new_resource.metadata.title = st_data["ModelName"].strip()
+        new_resource.metadata.title = "GroMoPo Metadata for " + st_data["ModelName"].strip()
         new_resource.metadata.abstract = st_data["Abstract"]
     
         # email=data["SubmittedEmail"]
@@ -280,13 +279,13 @@ def push_to_hydroshare(data, method="webform"):
             chkUnzip = False
             
             # turn ModelCountry into a string instead of a list
-            lstCountries = st_data["ModelCountry"]
-            strCountries = ", ".join(lstCountries)
-            emailNotification("abc123", strCountries, strCountries)
+            #lstCountries = st_data["ModelCountry"]
+            #strCountries = ", ".join(lstCountries)
+            #emailNotification("abc123", strCountries, strCountries)
                         
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
-                new_resource.metadata.spatial_coverage = BoxCoverage(name=strCountries,
+                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["ModelCountry"],
                                                                       northlimit=st_data["North"],
                                                                       eastlimit=st_data["East"],
                                                                       southlimit=st_data["South"],
@@ -395,7 +394,7 @@ def push_to_hydroshare(data, method="webform"):
             "Model Code": ', '.join(m_codes),
             "Purpose": ', '.join(m_purpose),
             "Integration or Coupling": ', '.join(m_integ),
-            "Evaluation or Callibration": ', '.join(m_eval),
+            "Evaluation or Calibration": ', '.join(m_eval),
             "Additional Information": m_add_info,
             "Creator Email": st_data["SubmittedEmail"]
         }
@@ -626,8 +625,9 @@ def app():
             
         
         # 2.6 MODEL EXTENT
-        c_country = st.multiselect(label="Model country (can select multiple)",
-                            options=l_countries, key="ModelCountry")
+        # c_country = st.multiselect(label="Model country (can select multiple)",
+        #                    options=l_countries, key="ModelCountry")
+        c_country = st.text_input(label="Model country or countries", value="", key="ModelCountry")
         data["ModelCountry"] = c_country
         
         st.markdown("# Model Extent and Scale")
