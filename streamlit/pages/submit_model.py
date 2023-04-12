@@ -204,7 +204,7 @@ def push_to_hydroshare(data, method="webform"):
     
         new_resource = hs.create()
         resIdentifier = new_resource.resource_id
-        new_resource.metadata.title = st_data["ModelName"].strip()
+        new_resource.metadata.title = "GroMoPo Metadata for " + st_data["ModelName"].strip()
         new_resource.metadata.abstract = st_data["Abstract"]
     
         # email=data["SubmittedEmail"]
