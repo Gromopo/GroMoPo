@@ -218,11 +218,11 @@ all_gdf['popup_html'] = all_gdf.apply(popupHTML,axis=1)
 all_gdf['DevDate'] = all_gdf['DevDate'].astype(str)
 
 # print(Path().absolute())
-#Load water table base map
-rast_fname = str(main_path.absolute().joinpath('data', 'degraaf_gw_dep.png'))
-img = read_img(rast_fname)
-rasters_dict = {'degraaf_dep':{'name':'Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)',
-                               'data':img}}
+#Load base map
+# Here we could add other maps like topography or precip
+#rast_fname = str(main_path.absolute().joinpath('data', 'topography.png'))
+#img = read_img(rast_fname)
+#rasters_dict = {'degraaf_dep':{'name':'Elevation',  'data':img}}
 
 # pt_fname = str(main_path.absolute().joinpath('data', 'sprint_11_2021_plot.csv'))
 # ptsq_df = csv2shp(pt_fname,crs=epsg)
@@ -252,9 +252,8 @@ def app():
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(m)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                      name='ArcWorldImagery', attr='x').add_to(m)
-    rgroups, marker_cluster, mlayer = plot_map(all_gdf,
-                                              rasters=rasters_dict,
-                                              popup=popup)
+    rgroups, marker_cluster, mlayer = plot_map(all_gdf,rasters={},popup=popup)
+    
     # Add raster data to map
     for rgroup in rgroups:
         rgroup.add_to(m)
