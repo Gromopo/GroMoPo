@@ -93,7 +93,7 @@ def writeToText(textFile, stuff):
     FILE.close()
     
 
-def updateHSfiles(geojson, shp):
+def updateHSfiles(geojson, shp, csv):
     
     hs_id = indexID
     
@@ -102,7 +102,7 @@ def updateHSfiles(geojson, shp):
     record = hs.resource(hs_id)
     
     # Upload one or more files to your resource 
-    record.file_upload(geojson, shp)
+    record.file_upload(geojson, shp, csv)
  
         
 def main():
@@ -129,6 +129,7 @@ def main():
     # set file paths
     geojson = join(storage, "GroMoPo_MapData.json")
     shp = join(storage, "GroMoPo_MapData.shp")
+    csv = join(storage, "GroMoPo_MapData.csv")
     issuesTxt = join(storage, "GMP_Mapping_Issues.txt")
         
     # create lists for storage
@@ -149,16 +150,12 @@ def main():
         else:
         
             # get properties
-            props = {"id": result["resource_id"],
-                     "devdate": result["date_created"],
-                     "name": result["resource_title"],
-                     "url": result["resource_url"],
-                     "hsuser": result["creator"],
-                     # "spscale": result[""], # in additional metadata
-                     "abstract": result["abstract"][0:253]
-                     # "archive": result[""],
-                     # "coupling": result[""],# in additional metadata
-                     #"contribu_1": result["author"] # see below
+            props = {"HS_ID": result["resource_id"],
+                     "DevDate": result["date_created"],
+                     "Title": result["resource_title"].replace("GroMoPo Metadata for ", ""),
+                     "HS_URL": result["resource_url"],
+                     "US_User": result["creator"],
+                     "Abstract": result["abstract"]
                      }
             
             # get authors as a string
@@ -172,26 +169,38 @@ def main():
                 else:
                     authors = ""
                     
-            props["contribu1"] = authors
+            props["Authors"] = authors
             
-            # get attributes from additional metadata
-            
-            # spatial scale- Scale
-            # verification- IsVerified
-            # coupling- Integration or Coupling
-            # authors- Model Authors
             
             # get record from HydroShare using resource ID
-            record = hs.resource(props["id"])
+            record = hs.resource(props["HS_ID"])
             
+            # get attributes from additional metadata
             addlMetadata = record.metadata.additional_metadata
             
             # key: attribute name in HydroShare additional metadata
             # value: attribute name in GroMoPo shapefile & geojson
-            addlM_dict = {"Scale": "spscale",
+            addlM_dict = {"PubTitle": "PubTitle",
+                          "Model Country": "MdlCntry",
+                          "Depth": "Depth",
+                          "Scale": "Scale",
+                          "Layers": "Layers",
+                          "Purpose": "Purpose",
                           "IsVerified": "gmpverify",
-                          "Integration or Coupling": "coupling",
-                          "Model Authors": "authors"}
+                          "Model Code": "MdlCode",
+                          "Model Time": "MdlTime",
+                          "Model Year": "MdlYear",
+                          "Model Link": "MdlLink",
+                          "DOI": "DOI",
+                          "Data Available": "DataAvail",
+                          "Developer Email": "DevEmail",
+                          "Dominant Geology": "DomGeol",
+                          "Developer Country": "DevCntry",
+                          "Original Developer": "OrigDev",
+                          "Additional Information": "AddInfo",
+                          "Integration or Coupling": "Coupling",
+                          "Evaluation or Calibration": "MdlEval",
+                          "Geologic Data Availability": "GeolAvail"}
             
             for hs_key in addlM_dict:
                 shp_key = addlM_dict[hs_key]
@@ -200,7 +209,7 @@ def main():
                 if hs_key in addlMetadata:
                     # if the value is in the HydroShare additional metadata,
                     # add it to the shapefile properties dictionary
-                    value = addlMetadata[hs_key][0:253]
+                    value = addlMetadata[hs_key]
                     
                     # standardize values
                     if value == "None of the above":
@@ -215,7 +224,8 @@ def main():
                         
             del record, addlMetadata, addlM_dict
             
-            if props["id"] != indexID:
+            # do not add a record for the GroMoPo index itself
+            if props["HS_ID"] != indexID:
             
                 # create a geojson feature
                 feature = Feature(geometry=geom,properties=props)
@@ -224,7 +234,7 @@ def main():
                 
     # clear out old files
     #extensions = ["json", "shp", "cpg", "dbf", "shx", "prj"]
-    for f in [geojson, shp, shp.replace(".shp", ".cpg"), 
+    for f in [geojson, csv, shp, shp.replace(".shp", ".cpg"), 
               shp.replace(".shp", ".dbj"),
                 shp.replace('.shp', ".shx"), shp.replace(".shp", ".prj"), issuesTxt]:
         if exists(f):
@@ -246,6 +256,9 @@ def main():
     # zip up shapefile
     zippedShp = ZipShp(shp)
 
+    # convert to csv
+    gdf.to_csv(csv)
+
     # write down IDs of records that couldn't be mapped
     for issueID in issues:
         writeToText(issuesTxt, issueID + "\n")
@@ -259,7 +272,7 @@ def main():
     print("Copied geojson to freeze")
     
     # update shp and geojson in HydroShare
-    updateHSfiles(geojson, zippedShp)
+    updateHSfiles(geojson, zippedShp, csv)
             
 if __name__ == '__main__':
     main()
