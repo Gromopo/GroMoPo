@@ -556,17 +556,17 @@ def app():
         data["Abstract"] = t_abstract
         
         # DESCRIPTIVE MODEL NAME       
-        model_name = st.text_input(label="Brief Descriptive Model Name (i.e., Edwards Aquifer model)", value="", key="ModelName")
+        model_name = st.text_input(label="Brief Descriptive Model Name (i.e., Edwards Aquifer model) *", value="", key="ModelName")
         data["ModelName"] = model_name
         
         # 1.46 MODEL LINK
-        t_model_link = st.text_input(label="Link to paper, report, or model", value="", key="ModelLink")
+        t_model_link = st.text_input(label="Link to paper, report, or model *", value="", key="ModelLink")
         data["ModelLink"] = t_model_link
 
         # 1.5 MODEL YEAR
         yearVal = datetime.now().date().year
         n_year = st.slider(label="Year of model development/publication *", min_value=1960,
-                           max_value=2030,
+                           max_value=2024,
                            value=yearVal, key="ModelYear")
         data["ModelYear"] = n_year
         subjects.append(str(n_year)[0:4])
@@ -602,7 +602,7 @@ def app():
         data["ModelAuthors"] = l_names
         
         # 2.1 MODEL DEVELOPER EMAIL
-        t_email_dev = st.text_input(label="Model developer primary email *", value="mail@mail.com", key="DevEmail")
+        t_email_dev = st.text_input(label="Model developer primary email", value="mail@mail.com", key="DevEmail")
         data["DevEmail"] = t_email_dev
 
         # 1.10 COUNTRY OF INSTITUTE OR DEVELOPER
@@ -612,7 +612,7 @@ def app():
         data["DevCountry"] = t_country
         
         # 1.9 MODEL INSTITUTE COUNTRY vs. MODEL LOCATION
-        b_country = st.radio(label="Is the model developer's institute located in the same country as the model location? *",
+        b_country = st.radio(label="Is the model developer's institute located in the same country as the model location?",
                              options=("Yes", "No", "Unclear"), key="SameCountry")
         data["SameCountry"] = b_country
         
@@ -642,9 +642,9 @@ def app():
         #                    min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
         #t_west = st.number_input(label="Top Left Longitude/X Value (ex. -103.025)", 
         #                    min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
-        t_north = st.text_input(label="Top Left Latitude/Y Value (ex. 37.023)", 
+        t_north = st.text_input(label="Top Left Latitude/Y Value (ex. 37.023) *", 
                             value="0.0", key="North")
-        t_west = st.text_input(label="Top Left Longitude/X Value (ex. -103.025)", 
+        t_west = st.text_input(label="Top Left Longitude/X Value (ex. -103.025) *", 
                             value="0.0", key="West")
 
         st.markdown("Bottom right coordinate")
@@ -652,9 +652,9 @@ def app():
         #                    min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
         #t_east = st.number_input(label="Bottom Right Longitude/X Value (ex. -94.544)", 
         #                    min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
-        t_south = st.text_input(label="Bottom Right Latitude/Y Value (ex. 33.764)", 
+        t_south = st.text_input(label="Bottom Right Latitude/Y Value (ex. 33.764) *", 
                             value="0.0", key="South")
-        t_east = st.text_input(label="Bottom Right Longitude/X Value (ex. -94.544)", 
+        t_east = st.text_input(label="Bottom Right Longitude/X Value (ex. -94.544) *", 
                             value="0.0", key="East")
         data["North"] = t_north
         data["East"] = t_east
