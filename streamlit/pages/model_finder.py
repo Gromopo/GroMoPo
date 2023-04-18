@@ -103,10 +103,14 @@ else:
 #                     "spscale":"Spatial scale", "purpose":"Purpose", "archive":"Model link(s)",
 #                     "coupling":"Coupling", "contribu_1":"Contributed by"})
 
-popup_dict = OrderedDict({"Title":"Model name",
-                          "Authors":"Authors",
-                          "HS_URL":"More information",
-                          "gmpverify":"Verified"})
+#popup_dict = OrderedDict({"Title":"Model name",
+#                          "Authors":"Authors",
+#                          "HS_URL":"More information",
+#                          "gmpverify":"Verified"})
+                          
+popup_dict = OrderedDict({"Title":"Model Name",
+                          "MdlLink":"Source",
+                          "HS_URL":"Metadata"})
 
 @st.cache_data
 def popupHTML(row, popup_dict=popup_dict,col1width=150):
@@ -136,9 +140,6 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
             second_col_val = row[key]
         
         if key=='Title':
-            
-            # Remove Gromopo addition
-            second_col_val = ' '.join(second_col_val.split()[4:])
             
             # Set title of popup box as the model name
             html = """<!DOCTYPE html>
@@ -172,6 +173,38 @@ def popupHTML(row, popup_dict=popup_dict,col1width=150):
                     #     link_html += """{}<br>""".format(link)
                     else:
                         link_html += """<a href="{0}" target="_blank">See HydroShare Resource</a><br>""".format(link)
+
+            
+            html += link_html
+            # else:
+            #     html += """{0}<br>""".format(second_col_val)
+                
+            html += """</span></td></tr>"""
+            # html += """</td></td></td></tr>"""
+            
+        
+        elif key=='MdlLink': # format for clickable link
+            html += """<tr>
+                       <td><span style="width: {0}px; color: #000000; overflow-wrap: break-word;"><b>{1}</b></span></td>
+                       <td><span style="overflow-wrap: break-word;>""".format(col1width,value) # Attribute name
+                       
+            # if second_col_val != 'N/A' and second_col_val is not None:
+                
+            links = second_col_val.split('|')
+            links.insert(0,"") # for some reason need a dummy entry, as first entry doesn't show up as link, only as text.
+            
+                
+            # link_html = """ """.join(["""<a href="{0}" target="_blank"> {0}</a><br>""".format(link) for link in links])
+            link_html = """ """
+            for i,link in enumerate(links):
+                if link != 'N/A':
+                    if i == 0:
+                        # Dummy link
+                        link_html += """<a href="{0}" target="_blank"></a>""".format(link)
+                    # elif link == 'N/A':
+                    #     link_html += """{}<br>""".format(link)
+                    else:
+                        link_html += """<a href="{0}" target="_blank">Link to paper/report</a><br>""".format(link)
 
             
             html += link_html
@@ -287,5 +320,5 @@ def app():
     Fullscreen().add_to(m)
 
     folium_static(m, height=700, width=1400)
-    
-    st.markdown("Any issues? [Report them on GitHub](https://github.com/Gromopo/GroMoPo/issues).")
+    st.markdown("Want to download the whole database? [Grab it from HydroShare!](https://www.hydroshare.org/resource/114b76f89d1c41c38e0e235443c7544c/)") 
+    st.markdown("Any issues? [Report them on GitHub!](https://github.com/Gromopo/GroMoPo/issues)")
