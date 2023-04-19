@@ -18,7 +18,7 @@ regex_doi = re.compile(
 regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 
-def emailNotification(resourceID, gmp_form_time, gmp_feedback):
+def emailNotification(resourceID, gmp_form_time, gmp_feedback, msg=''):
 
     emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
                   'kmbefus@uark.edu', 'samzipper@ku.edu']
@@ -27,9 +27,11 @@ def emailNotification(resourceID, gmp_form_time, gmp_feedback):
     
     message = "A new GroMoPo resource has been submitted. Please view at " + url
     if gmp_form_time != "":
-        message += "/nTime to fill out form: " + gmp_form_time
-    if gmp_feedback != "":
-        message += "/nForm Feedback: " + gmp_feedback
+        message += "\nTime to fill out form: " + gmp_form_time
+    if gmp_feedback not in ("", "Problems, comments, or suggestions"):
+        message += "\nForm Feedback: " + gmp_feedback
+    if msg != "":
+        message += "\n" + msg
     subject = "New GroMoPo Resource Submitted"
     
     send_mail(emailList, subject, message)
@@ -143,10 +145,13 @@ def getTrueValue(term, method, data):
         
         # see if it's set to "Unknown or ""Other"
         if val in ("Unknown", "Other") and st.session_state[term+"2"] != "":
-            val = st.session_state[term+"2"]
-            
+            val = st.session_state[term+"2"]  
     else:
         val = data[term]
+
+    # if it's blank, set to "Unknown"
+    if val in ([], ''):
+        val = "Unknown"
         
     return val
 
@@ -175,14 +180,6 @@ def remove_items(test_list, item):
     return res
 
 def push_to_hydroshare(data, method="webform"):
-    '''
-    Authenticate with the hydroshare services to store data.
-    Limitations
-    1: Currently through username and password
-    -> should be exchanged by token based access.
-    2: Hydroshare does not support to access collection at this time.
-    -> we store all resources in a group without using collections.
-    '''
 
     # set dictionary equal to session state object
     if method == "webform":
@@ -190,26 +187,25 @@ def push_to_hydroshare(data, method="webform"):
     elif method == "csv":
         st_data = data
 
-    # TODO the configuration should be read in in a central place and also contain other settings
+    # read settings and configs
     try:
         f = open(main_path.joinpath('config.json'))
         config = json.load(f)
     except:
         pass
     
-    # TODO can we avoid login in again every time?
     # try:
     if 1==1:
         hs = HydroShare(st_data["t_un"], st_data["t_pw"])
     
+        # add basic HydroShare components
         new_resource = hs.create()
         resIdentifier = new_resource.resource_id
         new_resource.metadata.title = "GroMoPo Metadata for " + st_data["ModelName"].strip()
         new_resource.metadata.abstract = st_data["Abstract"]
-    
-        # email=data["SubmittedEmail"]
         new_resource.metadata.creators.append(Creator(name=st_data["SubmittedName"]))
         
+        # save the resource
         new_resource.save()
     
         # set up file upload
@@ -218,10 +214,7 @@ def push_to_hydroshare(data, method="webform"):
         tryBox = False
         setPublic = False
         
-        # see if a zip file was uploaded
-        
-        # KJK-adding error trapping in case no file was uploaded
-        
+        # see if a zip file was uploaded        
         if method == "webform":
             if uploaded_file != '':
                 try:
@@ -238,6 +231,8 @@ def push_to_hydroshare(data, method="webform"):
                 except:
                     print("file upload failed")
                     tryBox = True
+            else:
+                tryBox = True
 
         # or upload a file
         elif uploaded_file != '' and method == "csv":
@@ -251,41 +246,36 @@ def push_to_hydroshare(data, method="webform"):
             tryBox = True
             
         if tryBox:
-            # # prep a content for temp text file
-            # fileDict = dict(st_data)
-            # fileDict.pop("t_un")
-            # fileDict.pop("t_pw")
-            # fileDict.pop("files")
             
-            # # make content readable
-            # fileContents = prettyDict(fileDict)
-            
-            # create temp file
-            textFile = tempfile.NamedTemporaryFile(mode="w+t", suffix=".txt", delete=False)
-            
-            textFile.write("info")
-            
-            # create a new folder in HydroShare
-            new_resource.folder_create('GroMoPoUpload')
-            
-            # Upload one or more files to a specific folder within a resource
-            new_resource.file_upload(textFile.name, destination_path='GroMoPoUpload')
-            
-            # close & remove temp text file
-            textFile.close()
+            if method == "webform":
+                # create temp file
+                textFile = tempfile.NamedTemporaryFile(mode="w+t", suffix=".txt", delete=False)
+                
+                textFile.write("info")
+                
+                # create a new folder in HydroShare
+                new_resource.folder_create('GroMoPoUpload')
+                
+                # Upload one or more files to a specific folder within a resource
+                new_resource.file_upload(textFile.name, destination_path='GroMoPoUpload')
+                
+                # close & remove temp text file
+                textFile.close()
             
             # edit flags
             setPublic = True
             chkUnzip = False
             
-            # turn ModelCountry into a string instead of a list
-            #lstCountries = st_data["ModelCountry"]
-            #strCountries = ", ".join(lstCountries)
-            #emailNotification("abc123", strCountries, strCountries)
+            # if needed, turn ModelCountry into a string instead of a list
+            if type(st_data["ModelCountry"]) is list:
+                lstCountries = st_data["ModelCountry"]
+                strCountries = ", ".join(lstCountries)
+            else:
+                strCountries = st_data["ModelCountry"]
                         
             # add spatial coverage as a box if no shapefile
             if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
-                new_resource.metadata.spatial_coverage = BoxCoverage(name=st_data["ModelCountry"],
+                new_resource.metadata.spatial_coverage = BoxCoverage(name=strCountries,
                                                                       northlimit=st_data["North"],
                                                                       eastlimit=st_data["East"],
                                                                       southlimit=st_data["South"],
@@ -306,7 +296,7 @@ def push_to_hydroshare(data, method="webform"):
         # add authors as keywords
         subjects = st_data["subjects"]
         
-        # for a_name in st.session_state["ModelAuthors"]:
+        # loop through authors and add as subjects if not testing names
         for a_name in st_data["ModelAuthors"]:
             if a_name not in ("T. Test", "Guy McGuy", ""):
                 subjects.append(a_name.strip())
@@ -314,7 +304,6 @@ def push_to_hydroshare(data, method="webform"):
         # get all model codes
         m_codes, subjects = combine_multi_and_tags(st_data["ModelCode"], 
                                                     st_data["ModelCode2"], subjects)
-        
         
         # get all model purposes
         m_purpose, subjects = combine_multi_and_tags(st_data["ModelPurpose"], 
@@ -328,13 +317,15 @@ def push_to_hydroshare(data, method="webform"):
         m_eval, subjects = combine_multi_and_tags(st_data["ModelEval"], 
                                                   st_data["ModelEval2"], subjects)
     
-        for subj in ["None of the above"]:
+        # make sure no unhelpful subjects get included
+        for subj in ["None of the above", []]:
             if subj in subjects:
                 subjects.remove(subj)
     
+        # set subjects/tags in HydroShare
         new_resource.metadata.subjects = subjects
         
-        # save new resource in HydroShare
+        # save resource in HydroShare
         new_resource.save()
     
         # see if a file was uploaded
@@ -343,9 +334,6 @@ def push_to_hydroshare(data, method="webform"):
             file = new_resource.files()[0]
             upload_name = file.path
             new_resource.file_unzip(path=upload_name, overwrite=True, ingest_metadata=False)
-    
-        # We could unpack this automatically but this provides an easy possibility to rename fields
-        # Also all fields in the metadata need to be
     
         # logic to get various variables
         # model scale
@@ -370,7 +358,6 @@ def push_to_hydroshare(data, method="webform"):
             isVerified = "True"
             
         # create dictionary of additional metadata
-        
         addl_metadata = {
             "IsVerified": isVerified,
             "Publication Title": st_data["PubTitle"],
@@ -403,7 +390,7 @@ def push_to_hydroshare(data, method="webform"):
         for key in addl_metadata:
             val = addl_metadata[key]
             
-            if val == '':
+            if val in ('', []):
                 addl_metadata[key] = "N/A"
     
         new_resource.metadata.additional_metadata = addl_metadata
@@ -461,9 +448,6 @@ def process_data(data:dict):
     st.session_state.counter += 1
     st.success('Your data was successfully submitted')
 
-#     send_email_to("name of reviewer", "info")
-#     send_email_to("name of model dev", "info")
-
 
 def combine_multi_and_tags(group1, group2, subjects):
     
@@ -489,9 +473,11 @@ else:
 
 @st.cache
 def get_countries():
+    # open countries file
     with open(main_path.joinpath('utils', 'countries.json'), 'r') as cs:
-
         country_data = cs.read()
+
+    # create list of countries to use in dropdown
     countries = json.loads(country_data)["countries"]
     l_countries = [d['name'] for d in countries]
     return l_countries
@@ -523,10 +509,11 @@ def app():
                     " it would like to keep your personal credentials so it can contact you in future,"
                     " and reward frequent contributors.")
 
-        # collect all answers in this dict -> we can easily use this as json to sent it via mail
+        # collect all answers in this dict 
         data = {}
 
-        # KJK- create variable for tags in HydroShare (called subjects in HS API), automatically add GroMoPo tag
+        # KJK- create variable for tags in HydroShare (called subjects in HS API)
+        # automatically add GroMoPo tag
         subjects = ["GroMoPo"]
 
         # 1.1 SUBMITTER NAME
@@ -625,9 +612,9 @@ def app():
             
         
         # 2.6 MODEL EXTENT
-        # c_country = st.multiselect(label="Model country (can select multiple)",
-        #                    options=l_countries, key="ModelCountry")
-        c_country = st.text_input(label="Model country or countries", value="", key="ModelCountry")
+        c_country = st.multiselect(label="Model country (can select multiple)",
+                            options=l_countries, key="ModelCountry")
+        # c_country = st.text_input(label="Model country or countries", value="", key="ModelCountry")
         data["ModelCountry"] = c_country
         
         st.markdown("# Model Extent and Scale")
@@ -638,20 +625,14 @@ def app():
 
         # 2.6.2 CENTROID
         st.markdown("Top left coordinate")
-        #t_north = st.number_input(label="Top Left Latitude/Y Value (ex. 37.023)", 
-        #                    min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="North")
-        #t_west = st.number_input(label="Top Left Longitude/X Value (ex. -103.025)", 
-        #                    min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="West")
+        # note- these are text input since streamlit input limited decimals to 3 places
         t_north = st.text_input(label="Top Left Latitude/Y Value (ex. 37.023) *", 
                             value="0.0", key="North")
         t_west = st.text_input(label="Top Left Longitude/X Value (ex. -103.025) *", 
                             value="0.0", key="West")
 
         st.markdown("Bottom right coordinate")
-        #t_south = st.number_input(label="Bottom Right Latitude/Y Value (ex. 33.764)", 
-        #                    min_value=-90.000000, max_value=90.000000, value=0.000000, step=.000001, key="South")
-        #t_east = st.number_input(label="Bottom Right Longitude/X Value (ex. -94.544)", 
-        #                    min_value=-180.000000, max_value=180.000000, value=0.000000, step=.000001, key="East")
+        # note- these are text input since streamlit input limited decimals to 3 places
         t_south = st.text_input(label="Bottom Right Latitude/Y Value (ex. 33.764) *", 
                             value="0.0", key="South")
         t_east = st.text_input(label="Bottom Right Longitude/X Value (ex. -94.544) *", 

@@ -14,6 +14,10 @@ from os import remove, listdir
 from shutil import copy2
 from hsclient import HydroShare
 
+import sys
+sys.path.append(r"E:\Kristen\Python")
+from KJK_module import emailNotification
+
 # set storage location
 storage = r"E:\Kristen\Data\GroMoPo"
 
@@ -40,7 +44,7 @@ def ZipShp (inShp):
     #Directory of shapefile
     inLocation = dirname(inShp)
     #Base name of shapefile
-    inName = basename(inShp)
+    inName = basename(inShp).replace(".shp", "")
     #Create zipfile name
     zipfl = join(inLocation, inName + ".zip")
     #Create zipfile object
@@ -154,7 +158,7 @@ def main():
                      "DevDate": result["date_created"],
                      "Title": result["resource_title"].replace("GroMoPo Metadata for ", ""),
                      "HS_URL": result["resource_url"],
-                     "US_User": result["creator"],
+                     #"US_User": result["creator"],
                      "Abstract": result["abstract"]
                      }
             
@@ -169,7 +173,7 @@ def main():
                 else:
                     authors = ""
                     
-            props["Authors"] = authors
+            props["Contribtr"] = authors
             
             
             # get record from HydroShare using resource ID
@@ -180,7 +184,8 @@ def main():
             
             # key: attribute name in HydroShare additional metadata
             # value: attribute name in GroMoPo shapefile & geojson
-            addlM_dict = {"PubTitle": "PubTitle",
+            addlM_dict = {"Publication Title": "PubTitle",
+                          "Model Authors": "MAuthors",
                           "Model Country": "MdlCntry",
                           "Depth": "Depth",
                           "Scale": "Scale",
@@ -235,7 +240,7 @@ def main():
     # clear out old files
     #extensions = ["json", "shp", "cpg", "dbf", "shx", "prj"]
     for f in [geojson, csv, shp, shp.replace(".shp", ".cpg"), 
-              shp.replace(".shp", ".dbj"),
+              shp.replace(".shp", ".dbj"),shp.replace(".shp", ".zip"),
                 shp.replace('.shp', ".shx"), shp.replace(".shp", ".prj"), issuesTxt]:
         if exists(f):
             remove(f)
@@ -262,17 +267,11 @@ def main():
     # write down IDs of records that couldn't be mapped
     for issueID in issues:
         writeToText(issuesTxt, issueID + "\n")
-        
-    # copy geojson to freeze
-    freezeLoc = "Z:\KgsMaps\GroMoPo\GroMoPo_MapData.json"
-    if exists(freezeLoc):
-        remove(freezeLoc)
-    copy2(geojson, freezeLoc)
-    
-    print("Copied geojson to freeze")
     
     # update shp and geojson in HydroShare
     updateHSfiles(geojson, zippedShp, csv)
+
+    emailNotification("GroMoPo Index Updated", "The GroMoPo geojson, shapefile, and csv have been updated in HydroShare.")
             
 if __name__ == '__main__':
     main()
