@@ -36,6 +36,19 @@ def emailNotification(resourceID, gmp_form_time, gmp_feedback, msg=''):
     
     send_mail(emailList, subject, message)
 
+
+def errorNotification(msg, dataDict, HS_ID=''):
+    email = "kristen.kgs@ku.edu"
+
+    subject = "Issue with GroMoPo Form Submission"
+
+    if HS_ID != '':
+        subject += ": " + HS_ID
+
+    message = msg + "\n" + prettyDict(dataDict)
+
+    send_mail(email, subject, message)
+
     
 def send_mail(to, SUBJECT, TEXT):
     import smtplib  
@@ -194,8 +207,8 @@ def push_to_hydroshare(data, method="webform"):
     except:
         pass
     
-    # try:
-    if 1==1:
+    try:
+    # if 1==1:
         hs = HydroShare(st_data["t_un"], st_data["t_pw"])
     
         # add basic HydroShare components
@@ -422,8 +435,9 @@ def push_to_hydroshare(data, method="webform"):
                 
         emailNotification(resIdentifier, st_data["TimeToFillOut"], st_data["Additional"])
         
-    # except:
-    #     print("Error with data upload for record " + st_data["ID"])
+    except Exception as e:
+        print("Error with data upload for record " + resIdentifier + ". The issue is being recorded.")
+        errorNotification(str(e), st_data, resIdentifier)
     
 
 def process_data(data:dict):
