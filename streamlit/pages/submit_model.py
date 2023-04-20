@@ -20,8 +20,7 @@ regex_isbn = re.compile(r"/^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/")
 
 def emailNotification(resourceID, gmp_form_time, gmp_feedback, msg=''):
 
-    emailList = ['robert.reinecke@uni-potsdam.de', 'd.zamrsky@uu.nl',
-                  'kmbefus@uark.edu', 'samzipper@ku.edu']
+    emailList = []
     
     url = r"https://www.hydroshare.org/resource/" + resourceID
     
@@ -38,7 +37,7 @@ def emailNotification(resourceID, gmp_form_time, gmp_feedback, msg=''):
 
 
 def errorNotification(dataDict, HS_ID=''):
-    email = "kristen.kgs@ku.edu"
+    email = ""
 
     subject = "Issue with GroMoPo Form Submission"
 
@@ -53,7 +52,7 @@ def errorNotification(dataDict, HS_ID=''):
 def send_mail(to, SUBJECT, TEXT):
     import smtplib  
 
-    FROM = 'gromopo@ku.edu'
+    FROM = ''
     
     if isinstance(to, list):
         TO = to
@@ -63,7 +62,7 @@ def send_mail(to, SUBJECT, TEXT):
     # Send the mail
     message = """From: %s\nTo: %s\nSubject: %s\n\n%s""" % (FROM, ", ".join(TO), SUBJECT, TEXT)
 
-    server = smtplib.SMTP('smtp.ku.edu')
+    server = smtplib.SMTP('')
     server.sendmail(FROM, TO, message)
     server.quit()  
 
@@ -212,8 +211,6 @@ def push_to_hydroshare(data, method="webform"):
         config = json.load(f)
     except:
         pass
-
-    error = ''
     
     hs = HydroShare(st_data["t_un"], st_data["t_pw"])
 
@@ -225,253 +222,222 @@ def push_to_hydroshare(data, method="webform"):
     new_resource.metadata.creators.append(Creator(name=st_data["SubmittedName"]))
     
     # save the resource
-    try:
-        new_resource.save()
-    except:
-        error = "Could not create resource.\nName: %s\nAbstract: %s\nSubmitted Name: %s" % (st_data["ModelName"].strip(), st_data["Abstract"], st_data["SubmittedName"])
-    
-    if error == '':
-        try:
-            # set up file upload
-            uploaded_file = st_data["files"]
-            chkUnzip = False
-            tryBox = False
-            setPublic = False
-            
-            # see if a zip file was uploaded        
-            if method == "webform":
-                if uploaded_file != '':
-                    try:
-                        # attempt to upload additional files
-                        # This is the url where the post is happening
-                        hsapi_path = f'{new_resource._hsapi_path}/files/' 
-                        new_resource._hs_session.upload_file(hsapi_path, 
-                                        files={'file': uploaded_file}, status_code=201)
-                        
-                        # edit flags
-                        setPublic = True
-                        chkUnzip = True
-                        
-                    except:
-                        print("file upload failed")
-                        tryBox = True
-                else:
-                    tryBox = True
+    new_resource.save()
 
-            # or upload a file
-            elif uploaded_file != '' and method == "csv":
-                # First create a new folder
-                new_resource.folder_create('GroMoPoUpload')
-                
-                # Upload one or more files to a specific folder within a resource
-                new_resource.file_upload(st_data['files'], destination_path='GroMoPoUpload')
-        
-                # edit flags
-                tryBox = True
-                
-            if tryBox:
-                
-                if method == "webform":
-                    # create temp file
-                    textFile = tempfile.NamedTemporaryFile(mode="w+t", suffix=".txt", delete=False)
-                    
-                    textFile.write("info")
-                    
-                    # create a new folder in HydroShare
-                    new_resource.folder_create('GroMoPoUpload')
-                    
-                    # Upload one or more files to a specific folder within a resource
-                    new_resource.file_upload(textFile.name, destination_path='GroMoPoUpload')
-                    
-                    # close & remove temp text file
-                    textFile.close()
+    # set up file upload
+    uploaded_file = st_data["files"]
+    chkUnzip = False
+    tryBox = False
+    setPublic = False
+    
+    # see if a zip file was uploaded        
+    if method == "webform":
+        if uploaded_file != '':
+            try:
+                # attempt to upload additional files
+                # This is the url where the post is happening
+                hsapi_path = f'{new_resource._hsapi_path}/files/' 
+                new_resource._hs_session.upload_file(hsapi_path, 
+                                files={'file': uploaded_file}, status_code=201)
                 
                 # edit flags
                 setPublic = True
-                chkUnzip = False
-
-        except:
-            error = "Could not upload file"
-
-    if error == "":
-        try:    
-            # if needed, turn ModelCountry into a string instead of a list
-            if type(st_data["ModelCountry"]) is list:
-                lstCountries = st_data["ModelCountry"]
-                strCountries = ", ".join(lstCountries)
-            else:
-                strCountries = st_data["ModelCountry"]
-                        
-            # add spatial coverage as a box if no shapefile
-            if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
-                new_resource.metadata.spatial_coverage = BoxCoverage(name=strCountries,
-                                                                      northlimit=st_data["North"],
-                                                                      eastlimit=st_data["East"],
-                                                                      southlimit=st_data["South"],
-                                                                      westlimit=st_data["West"],
-                                                                      projection='WGS 84 EPSG:4326',
-                                                                      type='box',
-                                                                      units='Decimal degrees')
+                chkUnzip = True
                 
-            else:
-                new_resource.metadata.spatial_coverage = PointCoverage(name="Global",
-                                                                      north=1.0,
-                                                                      east=1.0,                                                                      
-                                                                      projection='WGS 84 EPSG:4326',
-                                                                      type='point',
-                                                                      units='Decimal degrees')
-        except:
-            error = "Issue with processing Model Country list or setting box in HydroShare"
-        
-    if error == '':
-        try: 
-            # add keywords as subjects
-            # add authors as keywords   
-            subjects = st_data["subjects"]
-            
-            # loop through authors and add as subjects if not testing names
-            for a_name in st_data["ModelAuthors"]:
-                if a_name not in ("T. Test", "Guy McGuy", ""):
-                    subjects.append(a_name.strip())
-                    
-            # get all model codes
-            m_codes, subjects = combine_multi_and_tags(st_data["ModelCode"], 
-                                                        st_data["ModelCode2"], subjects)
-            
-            # get all model purposes
-            m_purpose, subjects = combine_multi_and_tags(st_data["ModelPurpose"], 
-                                                            st_data["ModelPurpose2"], subjects)
-            
-            # get all integrations
-            m_integ, subjects = combine_multi_and_tags(st_data["ModelIntegration"], 
-                                                            st_data["ModelIntegration2"], subjects)
-                    
-            # get all evaluations
-            m_eval, subjects = combine_multi_and_tags(st_data["ModelEval"], 
-                                                    st_data["ModelEval2"], subjects)
-        
-            # make sure no unhelpful subjects get included
-            for subj in ["None of the above", []]:
-                if subj in subjects:
-                    subjects.remove(subj)
-        
-            # set subjects/tags in HydroShare
-            new_resource.metadata.subjects = subjects
-            
-            # save resource in HydroShare
-            new_resource.save()
-        except:
-            error = "Could not save subjects/tags: " + str(subjects)
-    
-    if error == "":
-        try:
-            # see if a file was uploaded
-            if chkUnzip and method == "webform":
-                # # unzip the file
-                file = new_resource.files()[0]
-                upload_name = file.path
-                new_resource.file_unzip(path=upload_name, overwrite=True, ingest_metadata=False)
-        except:
-            error = "Could not unzip file"
-
-    if error == "":
-        try:
-            # logic to get various variables
-            # get all scales
-            m_scale = ", ".join(st_data["ModelScale"])
-            if st_data["ModelScale2"] != "":
-                m_scale += ", " + st_data["ModelScale2"]
-           
-            # geology
-            m_geo = getTrueValue("ModelGeo", method, st_data)    
-        
-            # additional information
-            m_add_info = ""
-            if st_data["ModelAdditional"] != "What additional information about this model should be included?":
-                m_add_info = st_data["ModelAdditional"]
-                
-            # depth
-            if st_data["Depth"] != '': 
-                depth = str(st_data["Depth"]) + " meters"
-            else:
-                depth = ''
-                
-            # verification
-            isVerified = "False"
-            if method == "csv":
-                isVerified = "True"
-                
-            # create dictionary of additional metadata
-            addl_metadata = {
-                "IsVerified": isVerified,
-                "Publication Title": st_data["PubTitle"],
-                "Original Developer": st_data["OriginalDev"],
-                "Model Year": str(st_data["ModelYear"]),
-                "Data Available": st_data["DataAvail"],
-                #"SameCountry": st_data["SameCountry"],
-                "Developer Country": st_data["DevCountry"],
-                "Model Country": strCountries,
-                #"Model Authors": ', '.join(st_data["ModelAuthors"]),
-                "Model Link": st_data["ModelLink"],
-                "Developer Email": st_data["DevEmail"],
-                #"Model Review": st_data["ModelReview"],
-                "DOI": st_data["DOI"],
-                "Scale": m_scale,
-                "Layers": st_data["Layers"],
-                "Depth": depth,
-                "Dominant Geology": m_geo,
-                "Geologic Data Availability": st_data["GeoAvail"],
-                "Model Time": str(st_data["ModelTime"]),
-                "Model Code": ', '.join(m_codes),
-                "Purpose": ', '.join(m_purpose),
-                "Integration or Coupling": ', '.join(m_integ),
-                "Evaluation or Calibration": ', '.join(m_eval),
-                "Additional Information": m_add_info,
-                "Creator Email": st_data["SubmittedEmail"]
-            }
-            
-            # loop through additional metadata, and if any values are blank, add not available
-            for key in addl_metadata:
-                val = addl_metadata[key]
-                
-                if val in ('', []):
-                    addl_metadata[key] = "N/A"
-        
-            new_resource.metadata.additional_metadata = addl_metadata
-            
-            # add terms as needed
-            for term in ["GroMoPo_ID", "ModelReview"]:
-                if term in st_data:
-                    new_resource.metadata.additional_metadata[term] = st_data[term]
-                
-            # save additional metadata in HydroShare
-            new_resource.save()
-
-        except:
-            error = "Issue with additional metadata: " + str(addl_metadata)
-        
-    if error == "":
-        # see if the resource should be public
-        if setPublic:
-            # set sharing to public 
-            try:
-                new_resource.set_sharing_status(public=True)
-                
-                try:
-                    # add GroMoPo_admin as a co-owner
-                    hsapi_path_access = f'{new_resource._hsapi_path}/access/'
-                    user_id = 18677
-                    user_info = {"privilege": 2, "user_id": user_id, "resource": resIdentifier}
-                    new_resource._hs_session.put(hsapi_path_access, data=user_info, status_code=202)
-                except:
-                    print("Could not add GroMoPo as co-owner")
             except:
-                print("Could not add as public resource")
-                
-        emailNotification(resIdentifier, st_data["TimeToFillOut"], st_data["Additional"])
+                print("file upload failed")
+                tryBox = True
+        else:
+            tryBox = True
 
-    if error != "":
-        errorNotification(error, resIdentifier)
+    # or upload a file
+    elif uploaded_file != '' and method == "csv":
+        # First create a new folder
+        new_resource.folder_create('GroMoPoUpload')
+        
+        # Upload one or more files to a specific folder within a resource
+        new_resource.file_upload(st_data['files'], destination_path='GroMoPoUpload')
+
+        # edit flags
+        tryBox = True
+                
+    if tryBox:
+        
+        if method == "webform":
+            # create temp file
+            textFile = tempfile.NamedTemporaryFile(mode="w+t", suffix=".txt", delete=False)
+            
+            textFile.write("info")
+            
+            # create a new folder in HydroShare
+            new_resource.folder_create('GroMoPoUpload')
+            
+            # Upload one or more files to a specific folder within a resource
+            new_resource.file_upload(textFile.name, destination_path='GroMoPoUpload')
+            
+            # close & remove temp text file
+            textFile.close()
+        
+        # edit flags
+        setPublic = True
+        chkUnzip = False
+
+    # if needed, turn ModelCountry into a string instead of a list
+    if type(st_data["ModelCountry"]) is list:
+        lstCountries = st_data["ModelCountry"]
+        strCountries = ", ".join(lstCountries)
+    else:
+        strCountries = st_data["ModelCountry"]
+                
+    # add spatial coverage as a box if no shapefile
+    if st_data["North"] != "0.0" and st_data["East"] != "0.0" and st_data["South"] != "0.0" and st_data["West"] != "0.0":
+        new_resource.metadata.spatial_coverage = BoxCoverage(name=strCountries,
+                                                                northlimit=st_data["North"],
+                                                                eastlimit=st_data["East"],
+                                                                southlimit=st_data["South"],
+                                                                westlimit=st_data["West"],
+                                                                projection='WGS 84 EPSG:4326',
+                                                                type='box',
+                                                                units='Decimal degrees')
+        
+    else:
+        new_resource.metadata.spatial_coverage = PointCoverage(name="Global",
+                                                                north=1.0,
+                                                                east=1.0,                                                                      
+                                                                projection='WGS 84 EPSG:4326',
+                                                                type='point',
+                                                                units='Decimal degrees')
+
+    # add keywords as subjects
+    # add authors as keywords   
+    subjects = st_data["subjects"]
+    
+    # loop through authors and add as subjects if not testing names
+    for a_name in st_data["ModelAuthors"]:
+        if a_name not in ("T. Test", "Guy McGuy", ""):
+            subjects.append(a_name.strip())
+            
+    # get all model codes
+    m_codes, subjects = combine_multi_and_tags(st_data["ModelCode"], 
+                                                st_data["ModelCode2"], subjects)
+    
+    # get all model purposes
+    m_purpose, subjects = combine_multi_and_tags(st_data["ModelPurpose"], 
+                                                    st_data["ModelPurpose2"], subjects)
+    
+    # get all integrations
+    m_integ, subjects = combine_multi_and_tags(st_data["ModelIntegration"], 
+                                                    st_data["ModelIntegration2"], subjects)
+            
+    # get all evaluations
+    m_eval, subjects = combine_multi_and_tags(st_data["ModelEval"], 
+                                            st_data["ModelEval2"], subjects)
+
+    # make sure no unhelpful subjects get included
+    for subj in ["None of the above", []]:
+        if subj in subjects:
+            subjects.remove(subj)
+
+    # set subjects/tags in HydroShare
+    new_resource.metadata.subjects = subjects
+    
+    # save resource in HydroShare
+    new_resource.save()
+
+    # see if a file was uploaded
+    if chkUnzip and method == "webform":
+        # # unzip the file
+        file = new_resource.files()[0]
+        upload_name = file.path
+        new_resource.file_unzip(path=upload_name, overwrite=True, ingest_metadata=False)
+
+    # logic to get various variables
+    # get all scales
+    m_scale = ", ".join(st_data["ModelScale"])
+    if st_data["ModelScale2"] != "":
+        m_scale += ", " + st_data["ModelScale2"]
+    
+    # geology
+    m_geo = getTrueValue("ModelGeo", method, st_data)    
+
+    # additional information
+    m_add_info = ""
+    if st_data["ModelAdditional"] != "What additional information about this model should be included?":
+        m_add_info = st_data["ModelAdditional"]
+        
+    # depth
+    if st_data["Depth"] != '': 
+        depth = str(st_data["Depth"]) + " meters"
+    else:
+        depth = ''
+        
+    # verification
+    isVerified = "False"
+    if method == "csv":
+        isVerified = "True"
+        
+    # create dictionary of additional metadata
+    addl_metadata = {
+        "IsVerified": isVerified,
+        "Publication Title": st_data["PubTitle"],
+        "Original Developer": st_data["OriginalDev"],
+        "Model Year": str(st_data["ModelYear"]),
+        "Data Available": st_data["DataAvail"],
+        #"SameCountry": st_data["SameCountry"],
+        "Developer Country": st_data["DevCountry"],
+        "Model Country": strCountries,
+        #"Model Authors": ', '.join(st_data["ModelAuthors"]),
+        "Model Link": st_data["ModelLink"],
+        "Developer Email": st_data["DevEmail"],
+        #"Model Review": st_data["ModelReview"],
+        "DOI": st_data["DOI"],
+        "Scale": m_scale,
+        "Layers": st_data["Layers"],
+        "Depth": depth,
+        "Dominant Geology": m_geo,
+        "Geologic Data Availability": st_data["GeoAvail"],
+        "Model Time": str(st_data["ModelTime"]),
+        "Model Code": ', '.join(m_codes),
+        "Purpose": ', '.join(m_purpose),
+        "Integration or Coupling": ', '.join(m_integ),
+        "Evaluation or Calibration": ', '.join(m_eval),
+        "Additional Information": m_add_info,
+        "Creator Email": st_data["SubmittedEmail"]
+    }
+    
+    # loop through additional metadata, and if any values are blank, add not available
+    for key in addl_metadata:
+        val = addl_metadata[key]
+        
+        if val in ('', []):
+            addl_metadata[key] = "N/A"
+
+    new_resource.metadata.additional_metadata = addl_metadata
+    
+    # add terms as needed
+    for term in ["GroMoPo_ID", "ModelReview"]:
+        if term in st_data:
+            new_resource.metadata.additional_metadata[term] = st_data[term]
+        
+    # save additional metadata in HydroShare
+    new_resource.save()
+
+    # see if the resource should be public
+    if setPublic:
+        # set sharing to public 
+        try:
+            new_resource.set_sharing_status(public=True)
+            
+            try:
+                # add GroMoPo_admin as a co-owner
+                hsapi_path_access = f'{new_resource._hsapi_path}/access/'
+                user_id = 18677
+                user_info = {"privilege": 2, "user_id": user_id, "resource": resIdentifier}
+                new_resource._hs_session.put(hsapi_path_access, data=user_info, status_code=202)
+            except:
+                print("Could not add GroMoPo as co-owner")
+        except:
+            print("Could not add as public resource")
     
 
 def process_data(data:dict):
