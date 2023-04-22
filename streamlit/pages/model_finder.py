@@ -35,7 +35,9 @@ def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
     mlayer=folium.GeoJson(shp_df, name='Groundwater models', popup=popup,
                           style_function = lambda feature: {
                             'fillColor': 'grey',
-                            'color':feature['properties']['color'],
+
+                            'color':'blue',
+
                             'weight': 1,
                             'fillOpacity': 0.7,
     })
@@ -47,28 +49,25 @@ def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
     return rgroups, marker_cluster, mlayer   
 
 
-@st.cache(suppress_st_warning=True)
+
+
+@st.cache_data
+
 def load_shp(dirname, shpnames=['wdomain','woutdomain'],
              epsg=3857,color_dict={'wdomain':'blue',
                                    'woutdomain':'red',
                                    'other':'green'}):
     all_gdfs = []
+    modelsURL = 'https://www.hydroshare.org/resource/114b76f89d1c41c38e0e235443c7544c/data/contents/GroMoPo_MapData.json'
+    # modelsURL = 'https://maps.kgs.ku.edu/GroMoPo/GroMoPo_MapData.json'
+
+    temp_df = gpd.read_file(modelsURL)
+    temp_df = temp_df.to_crs(epsg=epsg)
+    
+    all_gdfs.append(temp_df)
+    
     shp_dir = Path(dirname).joinpath('data', 'shapes')
-    for shpname in shpnames:
-        shp_fname = shp_dir.joinpath('{}.shp'.format(shpname))
-        # AUS_gdf_polygs = gpd.read_file('../QGIS/shapes/Australia.shp')
-        # NA_gdf_polygs = gpd.read_file('../QGIS/shapes/north_america.shp')
-        if shp_fname.exists():
-            temp_df = gpd.read_file(shp_fname)
-            if temp_df.crs.to_epsg() != epsg:
-                temp_df.to_crs(epsg=epsg, inplace=True)
-            
-            if shpname in color_dict:
-                temp_df['color'] = color_dict[shpname]
-            else:
-                temp_df['color'] = color_dict['other']
-            
-            all_gdfs.append(temp_df)
+
 
     if not all_gdfs:
         # Somehow the list is empty and something went wrong
@@ -85,7 +84,7 @@ def load_shp(dirname, shpnames=['wdomain','woutdomain'],
     
     return all_gdf, shp_dir
 
-@st.cache  
+@st.cache_data  
 def read_img(fname, skip_rows=60):
     img = imread(fname)
     cm_out = img[skip_rows:-skip_rows, :, :]
@@ -98,13 +97,23 @@ else:
     main_path = Path(".")
 
 
-popup_dict = OrderedDict({"id":"ID", "devdate":"Date developed", "name":"Model name",
-              "url":"Publication link(s)", "custodian":"Authors",
-                    "spscale":"Spatial scale", "purpose":"Purpose", "archive":"Model link(s)",
-                    "coupling":"Coupling", "contribu_1":"Contributed by"})
 
-@st.cache  
-def popupHTML(row, popup_dict=popup_dict,col1width=50):
+# popup_dict = OrderedDict({"id":"ID", "devdate":"Date developed", "name":"Model name",
+#               "url":"Publication link(s)", "custodian":"Authors",
+#                     "spscale":"Spatial scale", "purpose":"Purpose", "archive":"Model link(s)",
+#                     "coupling":"Coupling", "contribu_1":"Contributed by"})
+
+#popup_dict = OrderedDict({"Title":"Model name",
+#                          "Authors":"Authors",
+#                          "HS_URL":"More information",
+#                          "gmpverify":"Verified"})
+                          
+popup_dict = OrderedDict({"Title":"Model Name",
+                          "MdlLink":"Source",
+                          "HS_URL":"Metadata"})
+
+@st.cache_data
+def popupHTML(row, popup_dict=popup_dict,col1width=150):
     '''Create custom HTML for popup.
 
     Parameters
@@ -120,12 +129,7 @@ def popupHTML(row, popup_dict=popup_dict,col1width=50):
     After: https://towardsdatascience.com/folium-map-how-to-create-a-table-style-pop-up-with-html-code-76903706b88a
 
     '''
-    html = """<!DOCTYPE html>
-            <html>
-            
-            <table>
-            <tbody>
-            """
+    
     
     for key, value in popup_dict.items():
         # Loop through entries for popup with specific formatting
@@ -135,9 +139,21 @@ def popupHTML(row, popup_dict=popup_dict,col1width=50):
         else:
             second_col_val = row[key]
         
-        if 'link' in value: # format for clickable link
+        if key=='Title':
+            
+            # Set title of popup box as the model name
+            html = """<!DOCTYPE html>
+            <html>
+            <b>{0}</b>
+
+            <table>
+            <tbody>
+            """.format(second_col_val)
+            
+        
+        elif key=='HS_URL': # format for clickable link
             html += """<tr>
-                       <td><span style="width: {0}px; color: #293191; overflow-wrap: break-word;"><b>{1}</b></span></td>
+                       <td><span style="width: {0}px; color: #000000; overflow-wrap: break-word;"><b>{1}</b></span></td>
                        <td><span style="overflow-wrap: break-word;>""".format(col1width,value) # Attribute name
                        
             # if second_col_val != 'N/A' and second_col_val is not None:
@@ -149,12 +165,15 @@ def popupHTML(row, popup_dict=popup_dict,col1width=50):
             # link_html = """ """.join(["""<a href="{0}" target="_blank"> {0}</a><br>""".format(link) for link in links])
             link_html = """ """
             for i,link in enumerate(links):
-                if i == 0:
-                    link_html += """<a href="{0}" target="_blank">{0}</a>""".format(link)
-                elif link == 'N/A':
-                    link_html += """{}<br>""".format(link)
-                else:
-                    link_html += """<a href="{0}" target="_blank">{0}</a><br>""".format(link)
+                if link != 'N/A':
+                    if i == 0:
+                        # Dummy link
+                        link_html += """<a href="{0}" target="_blank"></a>""".format(link)
+                    # elif link == 'N/A':
+                    #     link_html += """{}<br>""".format(link)
+                    else:
+                        link_html += """<a href="{0}" target="_blank">See HydroShare Resource</a><br>""".format(link)
+
             
             html += link_html
             # else:
@@ -162,7 +181,38 @@ def popupHTML(row, popup_dict=popup_dict,col1width=50):
                 
             html += """</span></td></tr>"""
             # html += """</td></td></td></tr>"""
+            
+        
+        elif key=='MdlLink': # format for clickable link
+            html += """<tr>
+                       <td><span style="width: {0}px; color: #000000; overflow-wrap: break-word;"><b>{1}</b></span></td>
+                       <td><span style="overflow-wrap: break-word;>""".format(col1width,value) # Attribute name
+                       
+            # if second_col_val != 'N/A' and second_col_val is not None:
+                
+            links = second_col_val.split('|')
+            links.insert(0,"") # for some reason need a dummy entry, as first entry doesn't show up as link, only as text.
+            
+                
+            # link_html = """ """.join(["""<a href="{0}" target="_blank"> {0}</a><br>""".format(link) for link in links])
+            link_html = """ """
+            for i,link in enumerate(links):
+                if link != 'N/A':
+                    if i == 0:
+                        # Dummy link
+                        link_html += """<a href="{0}" target="_blank"></a>""".format(link)
+                    # elif link == 'N/A':
+                    #     link_html += """{}<br>""".format(link)
+                    else:
+                        link_html += """<a href="{0}" target="_blank">Link to paper/report</a><br>""".format(link)
 
+            
+            html += link_html
+            # else:
+            #     html += """{0}<br>""".format(second_col_val)
+                
+            html += """</span></td></tr>"""
+            # html += """</td></td></td></tr>"""
 
         else:
             html += """<tr>
@@ -198,12 +248,14 @@ all_gdf[objc] = all_gdf[objc].replace([None],'N/A')
 # Create popup html attribute
 all_gdf['popup_html'] = all_gdf.apply(popupHTML,axis=1)
 
+all_gdf['DevDate'] = all_gdf['DevDate'].astype(str)
+
 # print(Path().absolute())
-#Load water table base map
-rast_fname = str(main_path.absolute().joinpath('data', 'degraaf_gw_dep.png'))
-img = read_img(rast_fname)
-rasters_dict = {'degraaf_dep':{'name':'Water table depth [de Graaf] (Yellow = >100 m | Blue = <=0 m)',
-                               'data':img}}
+#Load base map
+# Here we could add other maps like topography or precip
+#rast_fname = str(main_path.absolute().joinpath('data', 'topography.png'))
+#img = read_img(rast_fname)
+#rasters_dict = {'degraaf_dep':{'name':'Elevation',  'data':img}}
 
 # pt_fname = str(main_path.absolute().joinpath('data', 'sprint_11_2021_plot.csv'))
 # ptsq_df = csv2shp(pt_fname,crs=epsg)
@@ -221,20 +273,20 @@ rasters_dict = {'degraaf_dep':{'name':'Water table depth [de Graaf] (Yellow = >1
 
 def app():
     st.title('GroMoPo — Groundwater Model Portal')
-    st.write("Sharing groundwater model data, knowledge and insights more easily through"
-             " a portal of regional and global numerical groundwater models."
-             "The first priority is archiving existing models, but the repository could eventually archive"
-             " model input and scripts for translating commonly used geospatial datasets into model inputs.")
+    st.write("Groundwater models are crucial for understanding groundwater science and sustainability but they are not "
+             "consistently and openly shared. You can explore or share groundwater model data, knowledge, and insights "
+             "through this unique portal of regional and global numerical groundwater models. We've made it easy! Fly "
+             "around the world on our map or grab a coffee and share your first model in less than 10 minutes!")
     
     # st.write("Path: {}".format(rast_fname))
+    # st.write("Columns are {}".format(all_gdf.dtypes))
     
     m = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='x',name='OpenTopoMap').add_to(m)
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                      name='ArcWorldImagery', attr='x').add_to(m)
-    rgroups, marker_cluster, mlayer = plot_map(all_gdf,
-                                              rasters=rasters_dict,
-                                              popup=popup)
+    rgroups, marker_cluster, mlayer = plot_map(all_gdf,rasters={},popup=popup)
+    
     # Add raster data to map
     for rgroup in rgroups:
         rgroup.add_to(m)
@@ -268,4 +320,5 @@ def app():
     Fullscreen().add_to(m)
 
     folium_static(m, height=700, width=1400)
-       
+    st.markdown("Want to download the whole database? [Grab it from HydroShare!](https://www.hydroshare.org/resource/114b76f89d1c41c38e0e235443c7544c/)") 
+    st.markdown("Any issues? [Report them on GitHub!](https://github.com/Gromopo/GroMoPo/issues)")

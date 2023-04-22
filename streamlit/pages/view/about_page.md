@@ -1,19 +1,23 @@
 # About
 
+<p align="left"><img src="https://lh3.googleusercontent.com/fUOinEw8NuoMAjPyGv0JjE-W797xo5Sl44IgcWh8r8L__cvqUDLOXJfzU-G8CYq4k-c=w2400" height="300" width="310" ></p>
+
 ## Vision
 
-Sharing groundwater model data, knowledge and insights more easily through a portal of regional and global numerical groundwater models. The first priority is visualizing and a structured database of existing models, but the portal could eventually include model input and scripts for translating commonly used geospatial datasets into model inputs.
+GroMoPo is a portal for sharing global to regional groundwater model data, knowledge and insights. Our vision is to be the one-stop-shop for both sharing and discovering groundwater models. 
 
-## Who are we?
+<p align="left"><img src="https://lh5.googleusercontent.com/CeVs9x8EoaLpf0r8CuO3HMaAgjfI9zgbwfxDu23cWt8coOoj7JAGRTS0qQl40ZO9_2M=w2400" height="285" width="312" ></p>
 
-GroMoPo is an initiative created by scientists from all corners of the world hoping to connect the groundwater modelling community and promote data and model sharing. The leading institutions and people involved in developing GroMoPo so far include the University of Victoria (Tom Gleeson and Sacha Ruzzante), the University of Kansas (Sam Zipper and Kyle Compare), Cardiff University (Mark Cuthbert), University of Arkansas (Kevin Befus), Utrecht University (Marc Bierkens, Daniel Zamrsky) and University Potsdam (Robert Reinecke). 
+We envision GroMoPo as a resource with benefits to, and contributions from, the entire groundwater science and engineering community, including groundwater modelers, educators, and researchers in related disciplines. 
 
-<p align="center"><img src="../img/university_logos.png" height="200" width="600" ></p>
+## Who is GroMoPo?
 
-Collecting individual groundwater model information is the core activity of the GroMoPo initiative. This at times mundane and time consuming task has been performed by many GroMoPo volunteers and members of the worldwide academic community. Here we would like to thank each one of them individually and also encourage them to come back any time and add more groundwater models! Thank you Andres Quichimbo, Chinchu Mohan, Daniel Kretschmer, David Serrano, Emilia Leijnse, Michael Jones, Rogier Westerhoff, Xander Huggins, Taylor L. Watson, Inge de Graaf, John Richins, Grant Ferguson, Frances Dunn, Ziona Bates-Norris. 
+GroMoPo is an initiative created by scientists from all corners of the world hoping to connect the groundwater modelling community and promote data and model sharing. People shepherding the initial version of GroMoPo so far include [Sam Zipper](https://www.samzipper.com/) (Kansas Geological Survey/University of Kansas), [Tom Gleeson](https://www.uvic.ca/ecs/civil/people/home/faculty-profiles/gleeson-tom.php) (University of Victoria), [Kevin Befus](https://groundwater.uark.edu/) (University of Arkansas), [Robert Reinecke](https://www.uni-potsdam.de/de/umwelt/institut/alle-mitarbeiterinnen/reinecke-robert) (University of Potsdam), [Kristen Jordan Koenig](https://www.linkedin.com/in/kristen-jordan-koenig-20505815/) (Kansas Geological Survey/University of Kansas), [Daniel Zamrsky](https://www.uu.nl/staff/DZamrsky) (Utrecht University), [Sacha Ruzzante](https://www.linkedin.com/in/sacha-ruzzante/?originalSubdomain=ca) (University of Victoria), [Kyle Compare](https://www.linkedin.com/in/kylecompare/) (Florida State University), [Daniel Kretschmer](https://www.uni-potsdam.de/en/umwelt/institut/alle-mitarbeiterinnen/kretschmer-daniel) (University of Potsdam), [Marc Bierkens](https://www.uu.nl/staff/mfpbierkens) (Utrecht University), [Anthony Castronova](https://www.cuahsi.org/about/our-team) (CUAHSI), [Scott Black](https://www.cuahsi.org/about/our-team) (CUAHSI), and [Mark Cuthbert](https://www.cardiff.ac.uk/people/view/617129-cuthbert-mark) (Cardiff University), and [Thorsten Wagener](https://www.uni-potsdam.de/de/umwelt/institut/alle-mitarbeiterinnen/wagener-thorsten) (University of Potsdam).
 
-We welcome new people and institutions to join us in our quest to collect groundwater models. If you are interested please contact any one of us!
+Collecting individual groundwater model information is the core activity of the GroMoPo initiative. This at times mundane and time consuming task has been performed by many GroMoPo volunteers and members of the worldwide academic community. Here we would like to thank each one of them individually and also encourage them to come back any time and add more groundwater models! Thank you Andres Quichimbo, Chinchu Mohan, David Serrano, Emilia Leijnse, Michael Jones, Rogier Westerhoff, Xander Huggins, Taylor L. Watson, Inge de Graaf, John Richins, Grant Ferguson, Frances Dunn, Ziona Bates-Norris, and many others. 
 
-## Data sharing
+We welcome new people and institutions to join us in our quest to collect groundwater models. If you are interested please head to the 'Submit Model' page and add your first model! And check out our [GitHub repository](https://github.com/Gromopo/GroMoPo) and get involved!
 
-The GroMoPo database is hosted by HydroShare (https://www.hydroshare.org) and the development of the front-end application is supported by CUAHSI (https://www.cuahsi.org). We hope that in near future we will have an interactive web interface up and running and provide the groundwater modelling community with a functional toolbox to find, reuse and share groundwater model data and information. 
+## Support
+
+The GroMoPo database is hosted by HydroShare (https://www.hydroshare.org) and the development of the front-end application is supported by CUAHSI (https://www.cuahsi.org) through a HydroInformatics Fellowship to Sam Zipper. 

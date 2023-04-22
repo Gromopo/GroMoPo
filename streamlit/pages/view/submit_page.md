@@ -1,14 +1,11 @@
-# This form is current under development. Data is not saved.
-This form is for testing purposes only. If you would like submit a model please use the current google-docs:
-https://docs.google.com/forms/d/e/1FAIpQLSeOgQtYLJALacZQfwF2Nb5RMWOqg_ODVyyEXoStBKHekfg66w/viewform
-
 # Share a model
 
 WELCOME NEW USERS!
 GroMoPo is a friendly but hungry database that appreciates your time and effort to feed it another delicious groundwater model!
-With your help it will grow into an even bigger database and a shoulder to cry on when you need groundwater model data. 
+With your help it will grow into an even bigger database and a helpful friend when you need groundwater model data.
 
-GroMoPo will be satisfied if you fill in the mandatory questions questions that are marked (*) which takes 1-2 minutes. GroMoPo will be even happier if you add more ingredients (aka answers to the questions), which takes 10-30 minutes for a model.
-Information about models can be hard to find so if you are struggling, please don’t panic or feel pressured. Just fill in the information you can find and feel free to complain to GroMoPo at the end of the form about your troubles.
-GroMoPo will play detective someday soon and try to solve the mystery of the hard to find data.
-Anyways, enough blabbering, let’s get cooking!
+GroMoPo will be satisfied if you fill in the mandatory questions that are marked (*) which takes 1-2 minutes. GroMoPo currently uses
+[HydroShare.org](https://www.hydroshare.org) to digest your tasty model metadata. This means you will need a free HydroShare.org account to help feed GroMoPo.
+
+There are some optional fields, but GroMoPo will be happiest if you add more ingredients (aka answers to the questions), which takes 5-20 minutes for a model. Information about models can be hard to find so if you are struggling, please don't panic or feel pressured. Just
+fill in the information you can find and feel free to complain to GroMoPo at the end of the form about your troubles. Anyways, enough blabbering, let's start eating models!
