@@ -427,15 +427,6 @@ def push_to_hydroshare(data, method="webform"):
         # set sharing to public 
         try:
             new_resource.set_sharing_status(public=True)
-            
-            try:
-                # add GroMoPo_admin as a co-owner
-                hsapi_path_access = f'{new_resource._hsapi_path}/access/'
-                user_id = 18677
-                user_info = {"privilege": 2, "user_id": user_id, "resource": resIdentifier}
-                new_resource._hs_session.put(hsapi_path_access, data=user_info, status_code=202)
-            except:
-                print("Could not add GroMoPo as co-owner")
         except:
             print("Could not add as public resource")
     
