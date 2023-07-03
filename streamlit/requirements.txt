@@ -4,6 +4,6 @@ matplotlib
 streamlit-folium
 streamlit-tags
 streamlit-option-menu
-hsclient==0.3.4
+hsclient==0.3.3
 geojson
 
