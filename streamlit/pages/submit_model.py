@@ -3,7 +3,7 @@ import streamlit_tags as stt
 
 import streamlit.components.v1 as components
 
-import re, json, itertools, platform, tempfile
+import re, json, itertools, platform, tempfile, requests
 from datetime import datetime
 from pathlib import Path
 from hsclient import HydroShare
@@ -543,10 +543,19 @@ def app():
         # 1.25 HYDROSHARE CREDENTIALS
         st.markdown("HydroShare credentials for upload. Passwords are not saved.")
 
-        t_un = st.text_input(label="HydroShare Username *", key="t_un")
-        t_pw = st.text_input(label="HydroShare Password *", type="password", key="t_pw")
-        data["un"] = st.session_state["t_un"]
-        data["pw"] = st.session_state["t_pw"]
+        t_un = st.text_input(label="HydroShare Username", key="t_un")
+        t_pw = st.text_input(label="HydroShare Password", type="password", key="t_pw")
+
+        if st.session_state["t_un"] in ("", " ") and st.session_state["t_pw"] in ("", " "):
+            un = "gromopo_submit"
+            response = json.loads(requests.get("https://maps.kgs.ku.edu/kjk_test/gromopo/KS_Area_1-Bare_Earth_DEMs_UTM14.json").text)
+            xdust = response['from']['orig']
+        else:
+            un = st.session_state["t_un"]
+            xdust = st.session_state["t_pw"]
+
+        data["un"] = un
+        data["pw"] = xdust
 
         # 1.4 PUBLICATION TITLE
         t_pub_title = st.text_input(label="Publication Title *", value="Model Publication Name", key="PubTitle")
