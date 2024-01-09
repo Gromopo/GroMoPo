@@ -248,7 +248,7 @@ all_gdf[objc] = all_gdf[objc].replace([None],'N/A')
 # Create popup html attribute
 all_gdf['popup_html'] = all_gdf.apply(popupHTML,axis=1)
 
-all_gdf['DevDate'] = all_gdf['DevDate'].astype(str)
+#all_gdf['DevDate'] = all_gdf['DevDate'].astype(str)
 
 # print(Path().absolute())
 #Load base map
