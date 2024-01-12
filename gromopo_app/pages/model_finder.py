@@ -277,7 +277,7 @@ def app():
              "through this unique portal of regional and global numerical groundwater models. We've made it easy! Fly "
              "around the world on our map or grab a coffee and share your first model in less than 10 minutes!")
     
-    st.write("shp loaded size: {}".format(all_gdf.shape))
+    # st.write("shp loaded size: {}".format(all_gdf.shape))
     # st.write("Columns are {}".format(all_gdf.dtypes))
     
     m = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
