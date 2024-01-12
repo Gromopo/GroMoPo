@@ -6,11 +6,11 @@ from pages import home, about, submit_model, model_finder
 from pathlib import Path
 import platform
 
-
-
 from streamlit_option_menu import option_menu
 
-
+# To run the app locally:
+# 1) navigate to the GroMoPo\streamlit directory in a command prompt window where streamlit is installed (e.g., Anaconda prompt)
+# 2) Enter the command: streamlit run GroMoPo_app.py
 
 
 app = MultiPage()

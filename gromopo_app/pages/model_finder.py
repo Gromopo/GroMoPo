@@ -4,7 +4,7 @@ import folium
 from folium.features import GeoJsonPopup#, GeoJsonTooltip
 from folium import plugins
 from folium.plugins import Fullscreen
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium#folium_static
 import geopandas as gpd
 from matplotlib.pyplot import imread
 from pathlib import Path
@@ -52,7 +52,6 @@ def plot_map(shp_df, rasters=None, popup=None,to_epsg='4326'):
 
 
 @st.cache_data
-
 def load_shp(dirname, shpnames=['wdomain','woutdomain'],
              epsg=3857,color_dict={'wdomain':'blue',
                                    'woutdomain':'red',
@@ -278,7 +277,7 @@ def app():
              "through this unique portal of regional and global numerical groundwater models. We've made it easy! Fly "
              "around the world on our map or grab a coffee and share your first model in less than 10 minutes!")
     
-    # st.write("Path: {}".format(rast_fname))
+    st.write("shp loaded size: {}".format(all_gdf.shape))
     # st.write("Columns are {}".format(all_gdf.dtypes))
     
     m = folium.Map(zoom_start=3, crs='EPSG{}'.format(epsg), min_zoom=3, max_bounds=True)
@@ -318,7 +317,7 @@ def app():
     # m.add_child(modelgroup2)
     m.add_child(folium.LayerControl())
     Fullscreen().add_to(m)
-
-    folium_static(m, height=700, width=1400)
+    
+    st_folium(m, height=700, width=1400)
     st.markdown("Want to download the whole database? [Grab it from HydroShare!](https://www.hydroshare.org/resource/114b76f89d1c41c38e0e235443c7544c/)") 
     st.markdown("Any issues? [Report them on GitHub!](https://github.com/Gromopo/GroMoPo/issues)")
