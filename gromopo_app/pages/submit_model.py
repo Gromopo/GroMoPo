@@ -477,13 +477,13 @@ def combine_multi_and_tags(group1, group2, subjects):
 if platform.system() == 'Windows':
     main_path = Path(".")
 else:
-    main_path = Path("streamlit")
+    main_path = Path("gromopo_app")
 
 
 if platform.system() == 'Windows':
     main_path = Path(".")
 else:
-    main_path = Path("streamlit")
+    main_path = Path("gromopo_app")
 
 @st.cache
 def get_countries():
