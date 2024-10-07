@@ -6,4 +6,4 @@ streamlit-tags
 streamlit-option-menu
 hsclient
 geojson
-
+pyogrio
