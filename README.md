@@ -4,8 +4,6 @@ Groundwater Model Portal — sharing regional to global groundwater model data
 ## Check out the current app version on Streamlit.io
 Main release (main branch) Streamlit app running live [here](https://gromopo.streamlit.app/)
 
-Development branch Streamlit app running live [here](https://gromopo-dev.streamlit.app/)
-
 ## Contribute to the code
 If you would like to contribute to this project, check out our [guidelines](CONTRIBUTING.md)
 
