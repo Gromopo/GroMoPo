@@ -1,6 +1,5 @@
 # About
 
-<p align="left"><img src="https://lh3.googleusercontent.com/fUOinEw8NuoMAjPyGv0JjE-W797xo5Sl44IgcWh8r8L__cvqUDLOXJfzU-G8CYq4k-c=w2400" height="300" width="310" ></p>
 
 ## Vision
 
