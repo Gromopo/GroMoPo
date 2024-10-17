@@ -1,5 +1,8 @@
 # About
 
+<div style="position: relative; float: right; margin-top: -50px; margin-left: 20px; max-width: 100%; width: 20%; height: auto;">
+    <img src="https://raw.githubusercontent.com/Gromopo/GroMoPo/a96b08161cb7993b387405734cbbbc190ace8b57/images/GroMoPo%20monster.svg" style="width: 100%; height: auto;" alt="GroMoPo Monster">
+</div>
 
 ## Vision
 
